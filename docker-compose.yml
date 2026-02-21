@@ -1,0 +1,68 @@
+# Standalone run (no Traefik). Used for local development and testing.
+# Copy .env.example to .env and set CHECKBOT_RAG_EMBEDDING_API_KEY and CHECKBOT_RAG_EMBEDDING_BASE_URL, then:
+#   docker compose up --build
+# Admin UI: http://localhost:3020
+
+services:
+  checkbot-rag-db:
+    image: pgvector/pgvector:0.8.1-pg18-trixie
+    restart: always
+    environment:
+      POSTGRES_DB: ${CHECKBOT_RAG_POSTGRES_DB:-checkbot_rag}
+      POSTGRES_USER: ${CHECKBOT_RAG_POSTGRES_USER:-checkbot_rag}
+      POSTGRES_PASSWORD: ${CHECKBOT_RAG_POSTGRES_PASSWORD:-mypassword}
+    volumes:
+      - checkbot_rag_pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${CHECKBOT_RAG_POSTGRES_USER:-checkbot_rag} -d ${CHECKBOT_RAG_POSTGRES_DB:-checkbot_rag}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - checkbot-net
+
+  checkbot-rag:
+    build: .
+    restart: always
+    ports:
+      - "${CHECKBOT_RAG_PORT:-3020}:3020"
+    environment:
+      CHECKBOT_RAG_PORT: ${CHECKBOT_RAG_PORT:-3020}
+      CHECKBOT_RAG_POSTGRES_HOST: checkbot-rag-db
+      CHECKBOT_RAG_POSTGRES_PORT: "5432"
+      CHECKBOT_RAG_POSTGRES_DB: ${CHECKBOT_RAG_POSTGRES_DB:-checkbot_rag}
+      CHECKBOT_RAG_POSTGRES_USER: ${CHECKBOT_RAG_POSTGRES_USER:-checkbot_rag}
+      CHECKBOT_RAG_POSTGRES_PASSWORD: ${CHECKBOT_RAG_POSTGRES_PASSWORD:-mypassword}
+      CHECKBOT_RAG_EMBEDDING_PROVIDER: ${CHECKBOT_RAG_EMBEDDING_PROVIDER:-scaleway}
+      CHECKBOT_RAG_EMBEDDING_MODEL: ${CHECKBOT_RAG_EMBEDDING_MODEL:-qwen3-embedding-8b}
+      CHECKBOT_RAG_EMBEDDING_API_KEY: ${CHECKBOT_RAG_EMBEDDING_API_KEY:-}
+      CHECKBOT_RAG_EMBEDDING_BASE_URL: ${CHECKBOT_RAG_EMBEDDING_BASE_URL:-https://api.scaleway.ai/v1}
+      CHECKBOT_RAG_EMBEDDING_DIMENSIONS: ${CHECKBOT_RAG_EMBEDDING_DIMENSIONS:-4096}
+      CHECKBOT_RAG_EMBEDDING_BATCH_SIZE: ${CHECKBOT_RAG_EMBEDDING_BATCH_SIZE:-32}
+      CHECKBOT_RAG_SEARCH_WEIGHT_VEC: ${CHECKBOT_RAG_SEARCH_WEIGHT_VEC:-1.0}
+      CHECKBOT_RAG_SEARCH_WEIGHT_FTS: ${CHECKBOT_RAG_SEARCH_WEIGHT_FTS:-1.0}
+      CHECKBOT_RAG_RRF_K: ${CHECKBOT_RAG_RRF_K:-60}
+      CHECKBOT_RAG_SEARCH_OVERFETCH: ${CHECKBOT_RAG_SEARCH_OVERFETCH:-3}
+      CHECKBOT_RAG_MAX_CHUNK_CHARS: ${CHECKBOT_RAG_MAX_CHUNK_CHARS:-6000}
+      NODE_ENV: production
+    volumes:
+      - ./exports:/data/exports
+    depends_on:
+      checkbot-rag-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:${CHECKBOT_RAG_PORT:-3020}/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - checkbot-net
+
+volumes:
+  checkbot_rag_pgdata:
+
+networks:
+  checkbot-net:
+    driver: bridge

@@ -37,6 +37,9 @@ const configSchema = z.object({
 
   // Path to serve Nuxt frontend static files (relative or absolute)
   staticDir: z.string().optional(),
+
+  // Optional API key for MCP endpoint. If set, requests to /mcp must send Authorization: Bearer <key>
+  mcpApiKey: z.string().optional(),
 });
 
 function loadConfig() {
@@ -72,6 +75,7 @@ function loadConfig() {
     },
 
     staticDir: process.env.CHECKBOT_RAG_STATIC_DIR,
+    mcpApiKey: process.env.CHECKBOT_RAG_MCP_API_KEY?.trim() || undefined,
   };
 
   const result = configSchema.safeParse(raw);

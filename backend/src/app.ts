@@ -27,7 +27,7 @@ export function createApp(): Koa {
       ctx.set("Access-Control-Allow-Origin", origin || "*");
     }
     ctx.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    ctx.set("Access-Control-Allow-Headers", "Content-Type, mcp-session-id");
+    ctx.set("Access-Control-Allow-Headers", "Content-Type, mcp-session-id, Authorization");
     ctx.set("Access-Control-Max-Age", "86400");
     if (ctx.method === "OPTIONS") {
       ctx.status = 204;
@@ -55,6 +55,21 @@ export function createApp(): Koa {
 
   // Parse request bodies for all routes (required by router handlers and MCP)
   app.use(bodyParser({ enableTypes: ["json"], strict: false }));
+
+  // MCP API key: when configured, require Authorization: Bearer <key> for /mcp
+  app.use(async (ctx, next) => {
+    if (ctx.path !== "/mcp") return next();
+    const expected = config.mcpApiKey;
+    if (!expected) return next();
+    const auth = ctx.get("Authorization");
+    const token = auth?.startsWith("Bearer ") ? auth.slice(7) : "";
+    if (token !== expected) {
+      ctx.status = 401;
+      ctx.body = { error: "Unauthorized" };
+      return;
+    }
+    return next();
+  });
 
   // MCP endpoint at /mcp — must be registered before API routes
   const mcpRouter = createMcpRouter();

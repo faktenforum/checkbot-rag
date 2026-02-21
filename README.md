@@ -2,13 +2,35 @@
 
 Fact-check RAG service for Faktenforum. Hybrid semantic + full-text search over fact-checks, exposed as REST API, MCP server (for LibreChat), and Nuxt admin UI.
 
+## Running standalone
+
+You can run and test Checkbot RAG without the full LibreChat stack:
+
+1. **Environment:** Copy `.env.example` to `.env`. Set:
+   - `CHECKBOT_RAG_EMBEDDING_API_KEY` — your Scaleway API key (required to run)
+   - `CHECKBOT_RAG_POSTGRES_PASSWORD` — DB password (required to run)
+   - `CHECKBOT_RAG_MCP_API_KEY` — optional; if set, MCP requests require `Authorization: Bearer <key>`
+   All other variables have defaults.
+
+2. **Start:** From the repo root run:
+   ```bash
+   docker compose up --build -D
+   ```
+   Admin UI: http://localhost:3020. Place claim JSON dumps in `./exports/` and trigger import via the UI or `/api/v1/import`.
+
+Checkbot runs as a **separate** stack or standalone. Consumers (e.g. LibreChat) connect via the MCP URL and, when configured, an API key.
+
+### Docker image build (CI)
+
+Images are built and pushed by this repo's GitHub Actions workflow (`.github/workflows/build-checkbot-rag.yml`) on push. Consumers run the image in their own stack or pull from `ghcr.io/faktenforum/checkbot-rag`. Ensure the GitHub package has **Manage Actions access** for this repository so `GITHUB_TOKEN` can push.
+
 ## Architecture
 
 ```mermaid
 graph TB
   subgraph clients [Clients]
     LibreChat["LibreChat (MCP)"]
-    AdminUI["Admin UI (Nuxt 4)"]
+    AdminUI["Admin UI (Nuxt)"]
     ExtAPI["External REST"]
   end
 
@@ -22,7 +44,7 @@ graph TB
   end
 
   subgraph storage [Storage]
-    PG["PostgreSQL 15 + pgvector"]
+    PG["PostgreSQL + pgvector"]
   end
 
   LibreChat -->|"HTTP/SSE"| MCP
@@ -40,12 +62,12 @@ graph TB
 | Layer | Technology |
 |-------|-----------|
 | Runtime | Bun (TypeScript, no compile step) |
-| HTTP framework | Koa 2 + routing-controllers + class-validator |
+| HTTP framework | Koa + routing-controllers + class-validator |
 | MCP | @modelcontextprotocol/sdk, HTTP/SSE transport |
-| Database | PostgreSQL 15 + pgvector 0.8 |
+| Database | PostgreSQL + pgvector |
 | Embedding | Scaleway Qwen3-Embedding-8B (OpenAI-compatible) |
 | Search | pgvector cosine + PostgreSQL FTS (`german`) + RRF |
-| Frontend | Nuxt 4, Nuxt UI v4, Tailwind v4, TanStack Vue Query |
+| Frontend | Nuxt, Nuxt UI, Tailwind, TanStack Vue Query |
 
 ## Chunking Strategy
 
@@ -85,11 +107,10 @@ Default: `k=60`, both weights `1.0`. Configure via env vars. Documents appearing
 | `CHECKBOT_RAG_POSTGRES_PORT` | `5432` | PostgreSQL port |
 | `CHECKBOT_RAG_POSTGRES_DB` | `checkbot_rag` | Database name |
 | `CHECKBOT_RAG_POSTGRES_USER` | `checkbot_rag` | DB user |
-| `CHECKBOT_RAG_POSTGRES_PASSWORD` | — | DB password (auto-generated) |
+| `CHECKBOT_RAG_POSTGRES_PASSWORD` | — | DB password (required to run) |
 | `CHECKBOT_RAG_EMBEDDING_PROVIDER` | `scaleway` | `scaleway` / `openrouter` / `openai` |
 | `CHECKBOT_RAG_EMBEDDING_MODEL` | `qwen3-embedding-8b` | Model name |
-| `CHECKBOT_RAG_EMBEDDING_API_KEY` | — | API key |
-| `CHECKBOT_RAG_EMBEDDING_BASE_URL` | `https://api.scaleway.ai/v1` | OpenAI-compatible base URL |
+| `CHECKBOT_RAG_EMBEDDING_API_KEY` | — | API key (required to run) |
 | `CHECKBOT_RAG_EMBEDDING_DIMENSIONS` | `4096` | Matryoshka dims: 4096 / 2048 / 1024 / 512 |
 | `CHECKBOT_RAG_EMBEDDING_BATCH_SIZE` | `32` | Texts per embedding API call |
 | `CHECKBOT_RAG_SEARCH_WEIGHT_VEC` | `1.0` | RRF weight for vector search |
@@ -98,6 +119,7 @@ Default: `k=60`, both weights `1.0`. Configure via env vars. Documents appearing
 | `CHECKBOT_RAG_SEARCH_OVERFETCH` | `3` | Fetch `limit × overfetch` candidates before RRF |
 | `CHECKBOT_RAG_MAX_CHUNK_CHARS` | `6000` | Max characters per chunk before sentence-splitting |
 | `CHECKBOT_RAG_STATIC_DIR` | `/app/public` | Path to Nuxt static files |
+| `CHECKBOT_RAG_MCP_API_KEY` | — | Optional. If set, MCP requests must send `Authorization: Bearer <key>` |
 
 ## REST API
 
