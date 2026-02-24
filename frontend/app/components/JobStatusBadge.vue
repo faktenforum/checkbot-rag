@@ -1,16 +1,19 @@
 <script setup lang="ts">
+type JobStatus = "pending" | "running" | "done" | "failed";
+type BadgeColor = "primary" | "success" | "warning" | "error" | "neutral";
+
 defineProps<{
-  status: "pending" | "running" | "done" | "failed";
+  status: JobStatus;
 }>();
 
-const labelByStatus: Record<string, string> = {
+const labelByStatus: Record<JobStatus, string> = {
   pending: "Ausstehend",
   running: "Läuft",
   done: "Fertig",
   failed: "Fehlgeschlagen",
 };
 
-const colorByStatus: Record<string, string> = {
+const colorByStatus: Record<JobStatus, BadgeColor> = {
   pending: "neutral",
   running: "primary",
   done: "success",
