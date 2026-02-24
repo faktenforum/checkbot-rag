@@ -4,14 +4,11 @@ import { db } from "../services/DatabaseService.js";
 const statsRouter = new Router({ prefix: "/api/v1" });
 
 statsRouter.get("/stats", async (ctx) => {
-  const [claimStats, chunkStats, ratingStats, categoryStats] = await Promise.all([
-    db.query<{ total: number; by_status: Record<string, number> }>(`
-      SELECT
-        COUNT(*)::int AS total,
-        json_object_agg(status, cnt) AS by_status
-      FROM (
-        SELECT status, COUNT(*)::int AS cnt FROM public.claims GROUP BY status
-      ) s
+  const [claimTotal, claimByStatus, chunkStats, ratingStats, categoryStats] = await Promise.all([
+    db.query<{ total: number }>(`SELECT COUNT(*)::int AS total FROM public.claims`),
+    db.query<{ by_status: Record<string, number> }>(`
+      SELECT json_object_agg(status, cnt) AS by_status
+      FROM (SELECT status, COUNT(*)::int AS cnt FROM public.claims GROUP BY status) s
     `),
     db.query<{ total: number; by_type: Record<string, number>; embedded: number }>(`
       SELECT
@@ -36,8 +33,8 @@ statsRouter.get("/stats", async (ctx) => {
 
   ctx.body = {
     claims: {
-      total: claimStats.rows[0]?.total ?? 0,
-      byStatus: claimStats.rows[0]?.by_status ?? {},
+      total: claimTotal.rows[0]?.total ?? 0,
+      byStatus: claimByStatus.rows[0]?.by_status ?? {},
     },
     chunks: {
       total: chunkStats.rows[0]?.total ?? 0,
