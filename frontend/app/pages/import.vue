@@ -75,18 +75,49 @@
             </div>
             <p class="text-xs text-neutral-400 mt-1">{{ job.id }}</p>
           </div>
-          <p class="text-xs text-neutral-400 shrink-0">
-            {{ new Date(job.createdAt).toLocaleString("de-DE") }}
-          </p>
+          <div class="flex flex-col items-end gap-1 shrink-0 text-right">
+            <p class="text-xs text-neutral-400">
+              {{ new Date(job.createdAt).toLocaleString("de-DE") }}
+            </p>
+            <div class="flex gap-2">
+              <UButton
+                v-if="job.status === 'pending' || job.status === 'running'"
+                color="warning"
+                size="xs"
+                variant="ghost"
+                icon="i-heroicons-x-mark"
+                :loading="actionLoadingId === job.id && currentAction === 'cancel'"
+                @click="() => cancelJob(job.id)"
+              >
+                Abbrechen
+              </UButton>
+              <UButton
+                v-if="job.status === 'done' || job.status === 'failed' || job.status === 'canceled'"
+                color="neutral"
+                size="xs"
+                variant="ghost"
+                icon="i-heroicons-trash"
+                :loading="actionLoadingId === job.id && currentAction === 'delete'"
+                @click="() => deleteJob(job.id)"
+              >
+                Löschen
+              </UButton>
+            </div>
+          </div>
         </div>
 
         <!-- Progress bar -->
-        <div v-if="job.status === 'running' || job.status === 'done'" class="space-y-1">
+        <div
+          v-if="job.status === 'running' || job.status === 'done'"
+          class="space-y-1"
+        >
           <div class="w-full bg-neutral-200 dark:bg-neutral-700 rounded-full h-2">
             <div
               class="h-2 rounded-full transition-all"
               :class="job.status === 'done' ? 'bg-success-500' : 'bg-primary-500'"
-              :style="{ width: `${job.total > 0 ? Math.round(((job.processed + job.skipped) / job.total) * 100) : 0}%` }"
+              :style="{
+                width: `${job.total > 0 ? Math.round(((job.processed + job.skipped) / job.total) * 100) : 0}%`,
+              }"
             />
           </div>
           <div class="flex justify-between text-xs text-neutral-400">
@@ -116,6 +147,8 @@ const { apiFetch } = useApi();
 const filePath = ref("/data/exports/claims_dump.json");
 const importing = ref(false);
 const importError = ref<string | null>(null);
+const actionLoadingId = ref<string | null>(null);
+const currentAction = ref<"cancel" | "delete" | null>(null);
 
 const {
   data: jobs,
@@ -144,6 +177,40 @@ async function startImport() {
     importError.value = (err as Error).message;
   } finally {
     importing.value = false;
+  }
+}
+
+async function cancelJob(jobId: string) {
+  actionLoadingId.value = jobId;
+  currentAction.value = "cancel";
+  importError.value = null;
+  try {
+    await apiFetch(`/api/v1/import/jobs/${jobId}/cancel`, {
+      method: "POST",
+    });
+    await refetch();
+  } catch (err) {
+    importError.value = (err as Error).message;
+  } finally {
+    actionLoadingId.value = null;
+    currentAction.value = null;
+  }
+}
+
+async function deleteJob(jobId: string) {
+  actionLoadingId.value = jobId;
+  currentAction.value = "delete";
+  importError.value = null;
+  try {
+    await apiFetch(`/api/v1/import/jobs/${jobId}`, {
+      method: "DELETE",
+    });
+    await refetch();
+  } catch (err) {
+    importError.value = (err as Error).message;
+  } finally {
+    actionLoadingId.value = null;
+    currentAction.value = null;
   }
 }
 </script>

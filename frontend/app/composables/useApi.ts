@@ -14,6 +14,11 @@ export function useApi() {
       throw new Error(body?.error ?? `Request failed: ${response.status}`);
     }
 
+    // DELETE endpoints like /import/jobs/:id return 204 No Content.
+    if (response.status === 204) {
+      return undefined as T;
+    }
+
     return response.json() as Promise<T>;
   }
 

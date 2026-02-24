@@ -5,9 +5,11 @@ import { chunkingService } from "./ChunkingService";
 import { db } from "./DatabaseService";
 import { EmbeddingService } from "./EmbeddingService";
 
+export type ImportJobStatusValue = "pending" | "running" | "done" | "failed" | "canceled";
+
 export interface ImportJobStatus {
   id: string;
-  status: "pending" | "running" | "done" | "failed";
+  status: ImportJobStatusValue;
   source: string;
   total: number;
   processed: number;
@@ -16,6 +18,7 @@ export interface ImportJobStatus {
   errorMessage?: string;
   startedAt?: Date;
   completedAt?: Date;
+  canceledAt?: Date;
   createdAt: Date;
 }
 
@@ -83,10 +86,11 @@ export class ImportService {
       error_message: string | null;
       started_at: Date | null;
       completed_at: Date | null;
+      canceled_at: Date | null;
       created_at: Date;
     }>(
       `SELECT id, status, source, total, processed, skipped, errors,
-              error_message, started_at, completed_at, created_at
+              error_message, started_at, completed_at, canceled_at, created_at
        FROM public.import_jobs WHERE id = $1`,
       [jobId]
     );
@@ -105,6 +109,7 @@ export class ImportService {
       errorMessage: row.error_message ?? undefined,
       startedAt: row.started_at ?? undefined,
       completedAt: row.completed_at ?? undefined,
+      canceledAt: row.canceled_at ?? undefined,
       createdAt: row.created_at,
     };
   }
@@ -121,10 +126,11 @@ export class ImportService {
       error_message: string | null;
       started_at: Date | null;
       completed_at: Date | null;
+      canceled_at: Date | null;
       created_at: Date;
     }>(
       `SELECT id, status, source, total, processed, skipped, errors,
-              error_message, started_at, completed_at, created_at
+              error_message, started_at, completed_at, canceled_at, created_at
        FROM public.import_jobs ORDER BY created_at DESC LIMIT $1`,
       [limit]
     );
@@ -140,8 +146,57 @@ export class ImportService {
       errorMessage: row.error_message ?? undefined,
       startedAt: row.started_at ?? undefined,
       completedAt: row.completed_at ?? undefined,
+      canceledAt: row.canceled_at ?? undefined,
       createdAt: row.created_at,
     }));
+  }
+
+  /**
+   * Request cancellation of a running or pending job.
+   * Returns the updated job status or null if not found.
+   */
+  async cancelJob(jobId: string): Promise<ImportJobStatus | null> {
+    const status = await this.getJobStatus(jobId);
+    if (!status) {
+      return null;
+    }
+
+    if (status.status === "done" || status.status === "failed" || status.status === "canceled") {
+      // Nothing to do – already in a terminal state
+      return status;
+    }
+
+    status.status = "canceled";
+    status.canceledAt = new Date();
+    this.jobs.set(jobId, status);
+
+    await db.query(
+      `UPDATE public.import_jobs
+       SET status = 'canceled', canceled_at = NOW()
+       WHERE id = $1`,
+      [jobId]
+    );
+
+    return status;
+  }
+
+  /**
+   * Delete a job only if it is in a terminal state (done, failed, canceled).
+   * Returns true on delete, false if not found or not deletable.
+   */
+  async deleteJob(jobId: string): Promise<"deleted" | "not_found" | "not_deletable"> {
+    const status = await this.getJobStatus(jobId);
+    if (!status) {
+      return "not_found";
+    }
+
+    if (status.status !== "done" && status.status !== "failed" && status.status !== "canceled") {
+      return "not_deletable";
+    }
+
+    await db.query(`DELETE FROM public.import_jobs WHERE id = $1`, [jobId]);
+    this.jobs.delete(jobId);
+    return "deleted";
   }
 
   private async runImport(
@@ -149,6 +204,17 @@ export class ImportService {
     job: ImportJobStatus,
     claims: ClaimJson[]
   ): Promise<void> {
+    // If the job was canceled before it started, mark as canceled and stop.
+    if (job.status === "canceled") {
+      await db.query(
+        `UPDATE public.import_jobs
+         SET status = 'canceled', canceled_at = COALESCE(canceled_at, NOW())
+         WHERE id = $1`,
+        [jobId]
+      );
+      return;
+    }
+
     job.status = "running";
     job.startedAt = new Date();
     await db.query(
@@ -158,6 +224,26 @@ export class ImportService {
 
     try {
       for (const claim of claims) {
+        // Respect cancellation flag between items by checking latest in-memory state
+        const current = this.jobs.get(jobId);
+        if (current?.status === "canceled") {
+          job.status = "canceled";
+          job.completedAt = new Date();
+          await db.query(
+            `UPDATE public.import_jobs
+             SET status = 'canceled',
+                 processed = $2,
+                 skipped = $3,
+                 errors = $4,
+                 error_message = $5,
+                 canceled_at = COALESCE(canceled_at, NOW()),
+                 completed_at = COALESCE(completed_at, NOW())
+             WHERE id = $1`,
+            [jobId, job.processed, job.skipped, job.errors, job.errorMessage ?? null]
+          );
+          return;
+        }
+
         try {
           const skipped = await this.importClaim(claim);
           if (skipped) {

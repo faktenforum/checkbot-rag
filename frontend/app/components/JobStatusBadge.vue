@@ -1,5 +1,5 @@
 <script setup lang="ts">
-type JobStatus = "pending" | "running" | "done" | "failed";
+type JobStatus = "pending" | "running" | "done" | "failed" | "canceled";
 type BadgeColor = "primary" | "success" | "warning" | "error" | "neutral";
 
 defineProps<{
@@ -11,6 +11,7 @@ const labelByStatus: Record<JobStatus, string> = {
   running: "Läuft",
   done: "Fertig",
   failed: "Fehlgeschlagen",
+  canceled: "Abgebrochen",
 };
 
 const colorByStatus: Record<JobStatus, BadgeColor> = {
@@ -18,6 +19,7 @@ const colorByStatus: Record<JobStatus, BadgeColor> = {
   running: "primary",
   done: "success",
   failed: "error",
+  canceled: "warning",
 };
 
 const iconByStatus: Record<string, string> = {
@@ -25,6 +27,7 @@ const iconByStatus: Record<string, string> = {
   running: "i-heroicons-arrow-path",
   done: "i-heroicons-check-circle",
   failed: "i-heroicons-exclamation-circle",
+  canceled: "i-heroicons-x-circle",
 };
 </script>
 

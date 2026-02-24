@@ -88,7 +88,7 @@ export interface ClaimDetail extends ClaimListItem {
 
 export interface ImportJobStatus {
   id: string;
-  status: "pending" | "running" | "done" | "failed";
+  status: "pending" | "running" | "done" | "failed" | "canceled";
   source: string;
   total: number;
   processed: number;
@@ -97,5 +97,6 @@ export interface ImportJobStatus {
   errorMessage?: string;
   startedAt?: string;
   completedAt?: string;
+  canceledAt?: string;
   createdAt: string;
 }
