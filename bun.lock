@@ -23,6 +23,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@checkbot/core": "workspace:*",
+        "@checkbot/mcp": "workspace:*",
         "@nuxt/ui": "^4.5.0",
         "@pinia/nuxt": "^0.11.3",
         "@tailwindcss/vite": "^4.2.1",
@@ -38,6 +39,15 @@
         "@nuxt/icon": "^2.2.1",
         "typescript": "^5.9.3",
         "vue-tsc": "^3.2.5",
+      },
+    },
+    "mcp": {
+      "name": "@checkbot/mcp",
+      "version": "0.1.0",
+      "dependencies": {
+        "@checkbot/core": "workspace:*",
+        "@modelcontextprotocol/sdk": "^1.27.0",
+        "zod": "^4.3.6",
       },
     },
   },
@@ -107,6 +117,8 @@
     "@checkbot/core": ["@checkbot/core@workspace:core"],
 
     "@checkbot/frontend": ["@checkbot/frontend@workspace:frontend"],
+
+    "@checkbot/mcp": ["@checkbot/mcp@workspace:mcp"],
 
     "@clack/core": ["@clack/core@1.0.1", "", { "dependencies": { "picocolors": "^1.0.0", "sisteransi": "^1.0.5" } }, "sha512-WKeyK3NOBwDOzagPR5H08rFk9D/WuN705yEbuZvKqlkmoLM2woKtXb10OO2k1NoSU4SFG947i2/SCYh+2u5e4g=="],
 

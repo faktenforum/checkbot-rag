@@ -2,9 +2,12 @@ import { randomUUID } from "node:crypto";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { z } from "zod";
-import { searchService } from "../services/SearchService.js";
-import { claimsService } from "../services/ClaimsService.js";
-import { claimStatsService } from "../services/ClaimStatsService.js";
+import {
+  searchService,
+  claimsService,
+  claimStatsService,
+} from "@checkbot/core";
+import type { IncomingMessage, ServerResponse } from "node:http";
 
 type McpResult = { content: Array<{ type: "text"; text: string }>; isError?: boolean };
 
@@ -65,11 +68,15 @@ export function createMcpServer(): McpServer {
             if (claim.categories.length > 0)
               lines.push(`- Kategorien: ${claim.categories.join(", ")}`);
 
-            const bestChunk = claim.chunks.sort((a, b) => b.rrfScore - a.rrfScore)[0];
+            const bestChunk = claim.chunks.sort(
+              (a, b) => b.rrfScore - a.rrfScore
+            )[0];
             if (bestChunk && bestChunk.chunkType === "fact_detail") {
               const excerpt = bestChunk.content.slice(0, 500);
               lines.push(
-                `\n*Relevanter Ausschnitt:*\n> ${excerpt}${bestChunk.content.length > 500 ? "..." : ""}`
+                `\n*Relevanter Ausschnitt:*\n> ${excerpt}${
+                  bestChunk.content.length > 500 ? "..." : ""
+                }`
               );
             }
 
@@ -156,12 +163,9 @@ export function createMcpServer(): McpServer {
   return server;
 }
 
-export type NodeReq = import("http").IncomingMessage;
-export type NodeRes = import("http").ServerResponse;
-
 export async function handleMcpRequest(
-  req: NodeReq,
-  res: NodeRes,
+  req: IncomingMessage,
+  res: ServerResponse,
   body: unknown
 ): Promise<void> {
   const sessionId = req.headers["mcp-session-id"] as string | undefined;
@@ -182,3 +186,4 @@ export async function handleMcpRequest(
 
   await sessionEntry.transport.handleRequest(req, res, body);
 }
+

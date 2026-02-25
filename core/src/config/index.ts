@@ -80,7 +80,7 @@ function loadConfig() {
 
   const result = configSchema.safeParse(raw);
   if (!result.success) {
-    console.error("Invalid configuration:", result.error.format());
+    console.error("Invalid configuration:", z.treeifyError(result.error));
     process.exit(1);
   }
   return result.data;

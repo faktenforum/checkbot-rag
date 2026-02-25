@@ -1,4 +1,4 @@
-import { handleMcpRequest } from "@checkbot/core/mcp";
+import { handleMcpRequest } from "@checkbot/mcp";
 
 export default defineEventHandler(async (event) => {
   const node = event.node;

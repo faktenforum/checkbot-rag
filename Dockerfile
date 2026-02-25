@@ -6,10 +6,12 @@ WORKDIR /build
 COPY package.json bun.lock* ./
 COPY frontend/package.json frontend/package-lock.json* ./frontend/
 COPY core/package.json ./core/
+COPY mcp/package.json ./mcp/
 RUN bun install --frozen-lockfile
 
 COPY frontend/ ./frontend/
 COPY core/ ./core/
+COPY mcp/ ./mcp/
 RUN bun run --cwd frontend build
 
 # Production image
