@@ -30,7 +30,11 @@ export class EmbeddingService {
   // Embed a single text. Retries up to 3 times on transient errors.
   async embedOne(text: string): Promise<number[]> {
     const results = await this.embedBatch([text]);
-    return results[0];
+    const first = results[0];
+    if (first === undefined) {
+      throw new Error("embedBatch returned no result for single text");
+    }
+    return first;
   }
 
   // Embed multiple texts, batching requests to respect API limits.

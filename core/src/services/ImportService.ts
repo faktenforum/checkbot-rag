@@ -48,7 +48,9 @@ export class ImportService {
        RETURNING id`,
       [source, claims.length]
     );
-    const jobId = rows[0].id;
+    const firstRow = rows[0];
+    if (!firstRow) throw new Error("INSERT import_jobs returned no row");
+    const jobId = firstRow.id;
 
     const job: ImportJobStatus = {
       id: jobId,
@@ -97,6 +99,7 @@ export class ImportService {
 
     if (rows.length === 0) return null;
     const row = rows[0];
+    if (!row) return null;
 
     return {
       id: row.id,
@@ -310,7 +313,8 @@ export class ImportService {
       [claim.id]
     );
 
-    if (existing.rows.length > 0 && existing.rows[0].version_hash === versionHash) {
+    const existingRow = existing.rows[0];
+    if (existingRow?.version_hash === versionHash) {
       return true; // unchanged
     }
 
@@ -321,8 +325,9 @@ export class ImportService {
     await db.withTransaction(async (client) => {
       let claimDbId: string;
 
-      if (existing.rows.length > 0) {
-        claimDbId = existing.rows[0].id;
+      const existingMatch = existing.rows[0];
+      if (existingMatch) {
+        claimDbId = existingMatch.id;
         // Update existing claim
         await client.query(
           `UPDATE public.claims SET
@@ -377,7 +382,9 @@ export class ImportService {
             JSON.stringify(claim),
           ]
         );
-        claimDbId = rows[0].id;
+        const insertRow = rows[0];
+        if (!insertRow) throw new Error("INSERT claims RETURNING id returned no row");
+        claimDbId = insertRow.id;
       }
 
       await this.insertChunks(client, claimDbId, chunks, embeddings);
@@ -395,6 +402,9 @@ export class ImportService {
     for (let i = 0; i < chunks.length; i++) {
       const chunk = chunks[i];
       const embedding = embeddings[i];
+      if (chunk === undefined || embedding === undefined) {
+        throw new Error(`Chunk/embedding mismatch at index ${i}`);
+      }
       const vectorSql = `[${embedding.join(",")}]`;
 
       await client.query(

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { Pool, PoolClient } from "pg";
+import { Pool, type PoolClient } from "pg";
 import { config } from "../config";
 
 export class DatabaseService {
