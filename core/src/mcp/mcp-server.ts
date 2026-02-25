@@ -3,7 +3,8 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { z } from "zod";
 import { searchService } from "../services/SearchService.js";
-import { db } from "../services/DatabaseService.js";
+import { claimsService } from "../services/ClaimsService.js";
+import { claimStatsService } from "../services/ClaimStatsService.js";
 
 type McpResult = { content: Array<{ type: "text"; text: string }>; isError?: boolean };
 
@@ -101,21 +102,14 @@ export function createMcpServer(): McpServer {
     async (args: any): Promise<McpResult> => {
       const { id } = args as { id: string };
       try {
-        const { rows } = await db.query(
-          `SELECT c.external_id, c.short_id, c.synopsis, c.rating_label,
-                  c.rating_statement, c.rating_summary, c.categories,
-                  c.publishing_url, c.publishing_date, c.status,
-                  c.raw_data
-           FROM claims c
-           WHERE c.external_id = $1 OR c.short_id = $1`,
-          [id]
-        );
+        const claim = (await claimsService.get(id)) as
+          | (Record<string, unknown> & { categories?: unknown })
+          | null;
 
-        if (rows.length === 0) {
+        if (!claim) {
           return { content: [text(`Fact-check not found: ${id}`)], isError: true };
         }
 
-        const claim = rows[0] as Record<string, unknown>;
         const lines = [
           `## Faktencheck: ${claim.synopsis ?? claim.short_id}`,
           `**ID:** ${claim.short_id}`,
@@ -145,14 +139,10 @@ export function createMcpServer(): McpServer {
     },
     async (): Promise<McpResult> => {
       try {
-        const { rows } = await db.query<{ category: string; count: number }>(`
-          SELECT unnest(categories) AS category, COUNT(*)::int AS count
-          FROM claims
-          GROUP BY category
-          ORDER BY count DESC
-        `);
-
-        const body = rows.map((r) => `- ${r.category}: ${r.count} Faktenchecks`).join("\n");
+        const rows = await claimStatsService.listCategories();
+        const body = rows
+          .map((r) => `- ${r.category}: ${r.count} Faktenchecks`)
+          .join("\n");
 
         return {
           content: [text(`## Verfügbare Kategorien\n\n${body || "Keine Kategorien gefunden"}`)],
