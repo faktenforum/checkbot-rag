@@ -1,11 +1,7 @@
 import fs from "node:fs";
-import { z } from "zod";
 import { importService } from "@checkbot/core";
 import type { ClaimJson } from "@checkbot/core";
-
-const ImportFromFileSchema = z.object({
-  filePath: z.string(),
-});
+import { ImportFromFileSchema } from "../../schemas/import";
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);

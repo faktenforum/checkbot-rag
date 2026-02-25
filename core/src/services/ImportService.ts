@@ -1,9 +1,7 @@
 import crypto from "node:crypto";
 import type { PoolClient } from "pg";
 import type { ClaimJson } from "../types/claim";
-import type {
-  ImportJobStatus,
-} from "../types/import";
+import type { ImportJobRow, ImportJobStatus } from "../types/import";
 import { chunkingService } from "./ChunkingService";
 import { db } from "./DatabaseService";
 import { EmbeddingService } from "./EmbeddingService";
@@ -60,20 +58,7 @@ export class ImportService {
     const cached = this.jobs.get(jobId);
     if (cached) return cached;
 
-    const { rows } = await db.query<{
-      id: string;
-      status: string;
-      source: string;
-      total: number;
-      processed: number;
-      skipped: number;
-      errors: number;
-      error_message: string | null;
-      started_at: Date | null;
-      completed_at: Date | null;
-      canceled_at: Date | null;
-      created_at: Date;
-    }>(
+    const { rows } = await db.query<ImportJobRow>(
       `SELECT id, status, source, total, processed, skipped, errors,
               error_message, started_at, completed_at, canceled_at, created_at
        FROM public.import_jobs WHERE id = $1`,
@@ -84,60 +69,21 @@ export class ImportService {
     const row = rows[0];
     if (!row) return null;
 
-    return {
-      id: row.id,
-      status: row.status as ImportJobStatus["status"],
-      source: row.source,
-      total: row.total,
-      processed: row.processed,
-      skipped: row.skipped,
-      errors: row.errors,
-      errorMessage: row.error_message ?? undefined,
-      startedAt: row.started_at ?? undefined,
-      completedAt: row.completed_at ?? undefined,
-      canceledAt: row.canceled_at ?? undefined,
-      createdAt: row.created_at,
-    };
+    return this.mapRowToStatus(row);
   }
 
   /**
    * List recent import jobs ordered by creation time.
    */
   async list(limit = 20): Promise<ImportJobStatus[]> {
-    const { rows } = await db.query<{
-      id: string;
-      status: string;
-      source: string;
-      total: number;
-      processed: number;
-      skipped: number;
-      errors: number;
-      error_message: string | null;
-      started_at: Date | null;
-      completed_at: Date | null;
-      canceled_at: Date | null;
-      created_at: Date;
-    }>(
+    const { rows } = await db.query<ImportJobRow>(
       `SELECT id, status, source, total, processed, skipped, errors,
               error_message, started_at, completed_at, canceled_at, created_at
        FROM public.import_jobs ORDER BY created_at DESC LIMIT $1`,
       [limit]
     );
 
-    return rows.map((row) => ({
-      id: row.id,
-      status: row.status as ImportJobStatus["status"],
-      source: row.source,
-      total: row.total,
-      processed: row.processed,
-      skipped: row.skipped,
-      errors: row.errors,
-      errorMessage: row.error_message ?? undefined,
-      startedAt: row.started_at ?? undefined,
-      completedAt: row.completed_at ?? undefined,
-      canceledAt: row.canceled_at ?? undefined,
-      createdAt: row.created_at,
-    }));
+    return rows.map((row) => this.mapRowToStatus(row));
   }
 
   /**
@@ -391,7 +337,7 @@ export class ImportService {
       if (chunk === undefined || embedding === undefined) {
         throw new Error(`Chunk/embedding mismatch at index ${i}`);
       }
-      const vectorSql = `[${embedding.join(",")}]`;
+      const vectorSql = EmbeddingService.toSql(embedding);
 
       await client.query(
         `INSERT INTO public.chunks (claim_id, chunk_type, fact_index, content, metadata, embedding)
@@ -433,6 +379,23 @@ export class ImportService {
       `UPDATE public.import_jobs SET processed = $2, skipped = $3, errors = $4, error_message = $5 WHERE id = $1`,
       [jobId, job.processed, job.skipped, job.errors, job.errorMessage ?? null]
     );
+  }
+
+  private mapRowToStatus(row: ImportJobRow): ImportJobStatus {
+    return {
+      id: row.id,
+      status: row.status as ImportJobStatus["status"],
+      source: row.source,
+      total: row.total,
+      processed: row.processed,
+      skipped: row.skipped,
+      errors: row.errors,
+      errorMessage: row.error_message ?? undefined,
+      startedAt: row.started_at ?? undefined,
+      completedAt: row.completed_at ?? undefined,
+      canceledAt: row.canceled_at ?? undefined,
+      createdAt: row.created_at,
+    };
   }
 }
 

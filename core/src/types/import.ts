@@ -28,3 +28,18 @@ export interface ImportResult {
   errors: number;
 }
 
+export interface ImportJobRow {
+  id: string;
+  status: string;
+  source: string;
+  total: number;
+  processed: number;
+  skipped: number;
+  errors: number;
+  error_message: string | null;
+  started_at: Date | null;
+  completed_at: Date | null;
+  canceled_at: Date | null;
+  created_at: Date;
+}
+

@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { importService } from "@checkbot/core";
-
-const JobIdParamSchema = z.string().uuid();
+import { JobIdParamSchema } from "../../../../schemas/import";
 
 export default defineEventHandler(async (event) => {
   const jobId = getRouterParam(event, "jobId");

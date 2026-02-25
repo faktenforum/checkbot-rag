@@ -1,14 +1,7 @@
-import { z } from "zod";
 import { searchService } from "@checkbot/core";
 import { defineEventHandler, readBody, setResponseStatus } from "h3";
-
-const SearchRequestSchema = z.object({
-  query: z.string(),
-  limit: z.number().int().min(1).max(50).default(10),
-  categories: z.array(z.string()).optional(),
-  ratingLabel: z.string().optional(),
-  chunkType: z.enum(["all", "overview", "fact_detail"]).default("all"),
-});
+import { z } from "zod";
+import { SearchRequestSchema } from "../../schemas/search";
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
