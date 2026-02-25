@@ -95,7 +95,19 @@ See `mcp/README.md` for the available tools and payloads.
    ```
 
 2. **Start PostgreSQL and migrations**  
-   In most cases you will run the full stack via Docker (`docker compose up`) so PostgreSQL and migrations are handled for you. If you run Nuxt alone, ensure PostgreSQL is reachable and the `@checkbot/core` migrations have been applied.
+   In most cases you will run the full stack via Docker (`docker compose up`) so PostgreSQL and migrations are handled for you. The `checkbot-rag-dbmate` service runs [dbmate](https://github.com/amacneil/dbmate) against the `checkbot_rag` database using the migration files in `core/db/migrations` before the app starts.
+
+   If you run Nuxt alone, ensure PostgreSQL is reachable and the dbmate migrations have been applied, for example:
+
+   ```bash
+   # from dev/checkbot-rag
+   docker run --rm \
+     -v "$(pwd)/core/db:/db" \
+     --network=host \
+     -e DATABASE_URL="postgres://user:pass@127.0.0.1:5432/checkbot_rag?sslmode=disable" \
+     -e DBMATE_MIGRATIONS_TABLE=checkbot_schema_migrations \
+     ghcr.io/amacneil/dbmate:latest up
+   ```
 
 3. **Run Nuxt dev server**:
 

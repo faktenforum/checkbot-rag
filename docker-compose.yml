@@ -22,6 +22,22 @@ services:
     networks:
       - checkbot-net
 
+  checkbot-rag-dbmate:
+    image: ghcr.io/amacneil/dbmate:latest
+    environment:
+      DATABASE_URL: "postgres://${CHECKBOT_RAG_POSTGRES_USER:-checkbot_rag}:${CHECKBOT_RAG_POSTGRES_PASSWORD:-mypassword}@checkbot-rag-db:5432/${CHECKBOT_RAG_POSTGRES_DB:-checkbot_rag}?sslmode=disable"
+      DBMATE_MIGRATIONS_TABLE: checkbot_schema_migrations
+      DBMATE_NO_DUMP_SCHEMA: "1"
+      DBMATE_WAIT: "1"
+    volumes:
+      - ./core/db:/db
+    depends_on:
+      checkbot-rag-db:
+        condition: service_healthy
+    command: ["up"]
+    networks:
+      - checkbot-net
+
   checkbot-rag:
     build: .
     restart: always
@@ -53,6 +69,8 @@ services:
     depends_on:
       checkbot-rag-db:
         condition: service_healthy
+      checkbot-rag-dbmate:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:${CHECKBOT_RAG_PORT:-3020}/health || exit 1"]
       interval: 30s
