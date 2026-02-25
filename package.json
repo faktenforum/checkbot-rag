@@ -8,7 +8,8 @@
     "core"
   ],
   "scripts": {
-    "build": "bun run --cwd core build && bun run --cwd frontend build"
+    "build": "bun run --cwd core build && bun run --cwd frontend build",
+    "check": "bun run --cwd core check && bun run --cwd frontend check"
   }
 }
 

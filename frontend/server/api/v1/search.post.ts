@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { searchService } from "@checkbot/core";
+import { defineEventHandler, readBody, setResponseStatus } from "h3";
 
 const SearchRequestSchema = z.object({
   query: z.string(),
