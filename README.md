@@ -81,9 +81,9 @@ graph TB
   end
 
   subgraph service [Checkbot RAG]
-    Nuxt["Nuxt 4 Nitro server\n(/api, /mcp, /health)"]
-    Core["@checkbot/core\n(DB, chunking, embeddings, search, import)"]
-    Mcp["@checkbot/mcp\nMCP tools (search_factchecks, get_factcheck, list_categories)"]
+    Nuxt["Nuxt 4 Nitro server<br/>(/api, /mcp, /health)"]
+    Core["@checkbot/core<br/>(DB, chunking, embeddings, search, import)"]
+    Mcp["@checkbot/mcp<br/>MCP tools (search_factchecks, get_factcheck, list_categories)"]
   end
 
   subgraph storage [Storage]
