@@ -1,17 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import { z } from "zod";
-import {
-  searchService,
-  claimsService,
-  claimStatsService,
-} from "@checkbot/core";
 import type { IncomingMessage, ServerResponse } from "node:http";
-
-type McpResult = { content: Array<{ type: "text"; text: string }>; isError?: boolean };
-
-const text = (t: string): { type: "text"; text: string } => ({ type: "text", text: t });
+import { registerSearchFactchecksTool } from "./tools/searchFactchecks.js";
+import { registerGetFactcheckTool } from "./tools/getFactcheck.js";
+import { registerListCategoriesTool } from "./tools/listCategories.js";
 
 interface SessionEntry {
   transport: StreamableHTTPServerTransport;
@@ -25,140 +18,9 @@ export function createMcpServer(): McpServer {
     version: "1.0.0",
   });
 
-  server.registerTool(
-    "search_factchecks",
-    {
-      description:
-        "Search German fact-checks from Faktenforum using hybrid semantic and full-text search. Returns relevant fact-checks ranked by relevance.",
-      inputSchema: {
-        query: z.string().describe("Search query in German or English"),
-        limit: z.number().optional().default(5).describe("Number of results (1-20, default: 5)"),
-        categories: z.array(z.string()).optional().describe("Filter by categories"),
-        rating_label: z.string().optional().describe("Filter by rating label"),
-      } as any,
-    },
-    async (args: any): Promise<McpResult> => {
-      const { query, limit, categories, rating_label } = args as {
-        query: string;
-        limit?: number;
-        categories?: string[];
-        rating_label?: string;
-      };
-      try {
-        const result = await searchService.search({
-          query,
-          limit: Math.min(limit ?? 5, 20),
-          categories,
-          ratingLabel: rating_label,
-          chunkType: "all",
-        });
-
-        if (result.claims.length === 0) {
-          return { content: [text(`No fact-checks found for query: "${query}"`)] };
-        }
-
-        const formatted = result.claims
-          .map((claim, i) => {
-            const lines = [
-              `**${i + 1}. ${claim.synopsis ?? claim.shortId}**`,
-              `- Urteil: ${claim.ratingLabel ?? "unbekannt"}`,
-            ];
-            if (claim.ratingSummary) lines.push(`- ${claim.ratingSummary}`);
-            if (claim.publishingUrl) lines.push(`- Quelle: ${claim.publishingUrl}`);
-            if (claim.categories.length > 0)
-              lines.push(`- Kategorien: ${claim.categories.join(", ")}`);
-
-            const bestChunk = claim.chunks.sort(
-              (a, b) => b.rrfScore - a.rrfScore
-            )[0];
-            if (bestChunk && bestChunk.chunkType === "fact_detail") {
-              const excerpt = bestChunk.content.slice(0, 500);
-              lines.push(
-                `\n*Relevanter Ausschnitt:*\n> ${excerpt}${
-                  bestChunk.content.length > 500 ? "..." : ""
-                }`
-              );
-            }
-
-            return lines.join("\n");
-          })
-          .join("\n\n---\n\n");
-
-        return {
-          content: [
-            text(
-              `## Faktencheck-Ergebnisse für: "${query}"\n\nGefunden: ${result.totalResults} Faktenchecks\n\n${formatted}`
-            ),
-          ],
-        };
-      } catch (err) {
-        return { content: [text(`Search error: ${(err as Error).message}`)], isError: true };
-      }
-    }
-  );
-
-  server.registerTool(
-    "get_factcheck",
-    {
-      description:
-        "Get the full details of a specific fact-check by its ID or short ID (e.g. '2025/11/20-2')",
-      inputSchema: {
-        id: z.string().describe("Fact-check ID (UUID) or short ID (e.g. '2025/11/20-2')"),
-      } as any,
-    },
-    async (args: any): Promise<McpResult> => {
-      const { id } = args as { id: string };
-      try {
-        const claim = (await claimsService.get(id)) as
-          | (Record<string, unknown> & { categories?: unknown })
-          | null;
-
-        if (!claim) {
-          return { content: [text(`Fact-check not found: ${id}`)], isError: true };
-        }
-
-        const lines = [
-          `## Faktencheck: ${claim.synopsis ?? claim.short_id}`,
-          `**ID:** ${claim.short_id}`,
-          `**Urteil:** ${claim.rating_label ?? "unbekannt"}`,
-          `**Status:** ${claim.status}`,
-        ];
-        if (claim.rating_summary)
-          lines.push(`\n**Zusammenfassung:**\n${claim.rating_summary}`);
-        if (claim.rating_statement)
-          lines.push(`\n**Einschätzung:**\n${claim.rating_statement}`);
-        if (claim.publishing_url) lines.push(`\n**Quelle:** ${claim.publishing_url}`);
-        if (Array.isArray(claim.categories) && claim.categories.length > 0) {
-          lines.push(`**Kategorien:** ${(claim.categories as string[]).join(", ")}`);
-        }
-
-        return { content: [text(lines.join("\n"))] };
-      } catch (err) {
-        return { content: [text(`Error: ${(err as Error).message}`)], isError: true };
-      }
-    }
-  );
-
-  server.registerTool(
-    "list_categories",
-    {
-      description: "List all available fact-check categories with their claim counts",
-    },
-    async (): Promise<McpResult> => {
-      try {
-        const rows = await claimStatsService.listCategories();
-        const body = rows
-          .map((r) => `- ${r.category}: ${r.count} Faktenchecks`)
-          .join("\n");
-
-        return {
-          content: [text(`## Verfügbare Kategorien\n\n${body || "Keine Kategorien gefunden"}`)],
-        };
-      } catch (err) {
-        return { content: [text(`Error: ${(err as Error).message}`)], isError: true };
-      }
-    }
-  );
+  registerSearchFactchecksTool(server);
+  registerGetFactcheckTool(server);
+  registerListCategoriesTool(server);
 
   return server;
 }
