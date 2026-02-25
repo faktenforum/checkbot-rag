@@ -29,6 +29,8 @@ services:
       - "${CHECKBOT_RAG_PORT:-3020}:3020"
     environment:
       CHECKBOT_RAG_PORT: ${CHECKBOT_RAG_PORT:-3020}
+      PORT: ${CHECKBOT_RAG_PORT:-3020}
+      HOST: "0.0.0.0"
       CHECKBOT_RAG_POSTGRES_HOST: checkbot-rag-db
       CHECKBOT_RAG_POSTGRES_PORT: "5432"
       CHECKBOT_RAG_POSTGRES_DB: ${CHECKBOT_RAG_POSTGRES_DB:-checkbot_rag}

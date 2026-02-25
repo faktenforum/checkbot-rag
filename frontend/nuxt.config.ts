@@ -60,4 +60,14 @@ export default defineNuxtConfig({
   imports: {
     dirs: ["composables/**"],
   },
+  devServer: {
+    port: process.env.CHECKBOT_RAG_PORT ? Number(process.env.CHECKBOT_RAG_PORT) : 3020,
+  },
+  nitro: {
+    routeRules: {
+      "/api/v1/**": { cors: true },
+      "/health": { cors: true },
+      "/mcp": { cors: true },
+    },
+  }
 });

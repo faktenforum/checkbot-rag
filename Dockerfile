@@ -1,33 +1,27 @@
-# Stage 1: Build Nuxt frontend (vue-router comes from Nuxt; no explicit dep avoids @nuxt/ui conflict)
-FROM node:24-alpine AS frontend-builder
+# Build Nuxt app (frontend + server API) with workspace core
+FROM oven/bun:1-alpine AS builder
 
-WORKDIR /build/frontend
+WORKDIR /build
 
-COPY frontend/package.json frontend/package-lock.json* ./
-RUN npm install --frozen-lockfile
+COPY package.json bun.lock* ./
+COPY frontend/package.json frontend/package-lock.json* ./frontend/
+COPY core/package.json ./core/
+COPY mcp/package.json ./mcp/
+RUN bun install --frozen-lockfile
 
-COPY frontend/ ./
-# generate produces .output/public/index.html for static hosting; build alone does not
-RUN npm run generate
+COPY frontend/ ./frontend/
+COPY core/ ./core/
+COPY mcp/ ./mcp/
+RUN bun run --cwd frontend build
 
-# Stage 2: Production image with Bun runtime
-# Uses oven/bun for native TypeScript execution without compilation
-FROM oven/bun:1-alpine AS runtime
+# Production image
+FROM node:24-alpine AS runtime
 
 WORKDIR /app
 
-# Install backend dependencies
-COPY backend/package.json backend/bun.lockb* ./
-RUN bun install --frozen-lockfile
+COPY --from=builder /build/frontend/.output ./.output
+COPY --from=builder /build/core/src/migrations ./.output/migrations
 
-# Copy backend source
-COPY backend/src ./src
-COPY backend/tsconfig.json ./
-
-# Copy built frontend static files from stage 1
-COPY --from=frontend-builder /build/frontend/.output/public ./public
-
-# Exports directory for import feature (mount as volume)
 RUN mkdir -p /data/exports
 
 EXPOSE 3020
@@ -35,7 +29,8 @@ EXPOSE 3020
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD wget -q --spider http://localhost:3020/health || exit 1
 
-ENV CHECKBOT_RAG_STATIC_DIR=/app/public
 ENV NODE_ENV=production
+ENV PORT=3020
+ENV HOST=0.0.0.0
 
-CMD ["bun", "src/server.ts"]
+CMD ["node", ".output/server/index.mjs"]
