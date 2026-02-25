@@ -1,6 +1,6 @@
-import Router from "@koa/router";
+import { defineHandler, getQuery } from "nitro/h3";
 import { z } from "zod";
-import { db } from "../services/DatabaseService.js";
+import { db } from "@checkbot/core/services/DatabaseService";
 
 const GetClaimsQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -10,16 +10,13 @@ const GetClaimsQuerySchema = z.object({
   status: z.string().optional(),
 });
 
-const claimRouter = new Router({ prefix: "/api/v1" });
-
-claimRouter.get("/claims", async (ctx) => {
-  const result = GetClaimsQuerySchema.safeParse(ctx.query);
+export default defineHandler(async (event) => {
+  const query = getQuery(event);
+  const result = GetClaimsQuerySchema.safeParse(query);
   if (!result.success) {
-    ctx.status = 400;
-    ctx.body = { error: "Validation error", details: result.error.flatten() };
-    return;
+    event.res.status = 400;
+    return { error: "Validation error", details: result.error.flatten() };
   }
-
   const { page, limit, ratingLabel, category, status } = result.data;
   const offset = (page - 1) * limit;
 
@@ -55,7 +52,7 @@ claimRouter.get("/claims", async (ctx) => {
     db.query<{ total: number }>(`SELECT COUNT(*)::int AS total FROM public.claims ${where}`, params),
   ]);
 
-  ctx.body = {
+  return {
     data: claims,
     total: countRows[0].total,
     page,
@@ -63,34 +60,3 @@ claimRouter.get("/claims", async (ctx) => {
     pages: Math.ceil(countRows[0].total / limit),
   };
 });
-
-claimRouter.get("/claims/:id", async (ctx) => {
-  const id = ctx.params.id;
-
-  const { rows } = await db.query(
-    `SELECT c.*, json_agg(
-       json_build_object(
-         'id', ch.id,
-         'chunk_type', ch.chunk_type,
-         'fact_index', ch.fact_index,
-         'content', ch.content,
-         'metadata', ch.metadata
-       ) ORDER BY ch.chunk_type DESC, ch.fact_index ASC NULLS FIRST
-     ) AS chunks
-     FROM public.claims c
-     LEFT JOIN public.chunks ch ON ch.claim_id = c.id
-     WHERE c.external_id::text = $1 OR c.short_id = $1
-     GROUP BY c.id`,
-    [id]
-  );
-
-  if (rows.length === 0) {
-    ctx.status = 404;
-    ctx.body = { error: "Claim not found" };
-    return;
-  }
-
-  ctx.body = rows[0];
-});
-
-export { claimRouter };

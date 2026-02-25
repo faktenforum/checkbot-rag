@@ -1,9 +1,7 @@
-import Router from "@koa/router";
-import { db } from "../services/DatabaseService.js";
+import { defineHandler } from "nitro/h3";
+import { db } from "@checkbot/core";
 
-const statsRouter = new Router({ prefix: "/api/v1" });
-
-statsRouter.get("/stats", async (ctx) => {
+export default defineHandler(async () => {
   const [claimTotal, claimByStatus, chunkStats, ratingStats, categoryStats] = await Promise.all([
     db.query<{ total: number }>(`SELECT COUNT(*)::int AS total FROM public.claims`),
     db.query<{ by_status: Record<string, number> }>(`
@@ -31,7 +29,7 @@ statsRouter.get("/stats", async (ctx) => {
     `),
   ]);
 
-  ctx.body = {
+  return {
     claims: {
       total: claimTotal.rows[0]?.total ?? 0,
       byStatus: claimByStatus.rows[0]?.by_status ?? {},
@@ -45,26 +43,3 @@ statsRouter.get("/stats", async (ctx) => {
     categories: categoryStats.rows,
   };
 });
-
-statsRouter.get("/categories", async (ctx) => {
-  const { rows } = await db.query<{ category: string; count: number }>(`
-    SELECT unnest(categories) AS category, COUNT(*)::int AS count
-    FROM public.claims
-    GROUP BY category
-    ORDER BY count DESC
-  `);
-  ctx.body = rows;
-});
-
-statsRouter.get("/rating-labels", async (ctx) => {
-  const { rows } = await db.query<{ rating_label: string; count: number }>(`
-    SELECT rating_label, COUNT(*)::int AS count
-    FROM public.claims
-    WHERE rating_label IS NOT NULL
-    GROUP BY rating_label
-    ORDER BY count DESC
-  `);
-  ctx.body = rows;
-});
-
-export { statsRouter };

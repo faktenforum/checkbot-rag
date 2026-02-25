@@ -1,18 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import Router from "@koa/router";
-import type Koa from "koa";
 import { z } from "zod";
 import { searchService } from "../services/SearchService.js";
 import { db } from "../services/DatabaseService.js";
 
-// Zod v4's public types don't satisfy the SDK's AnySchema union at the TypeScript level
-// (even though they are fully compatible at runtime). Cast inputSchema to silence tsc
-// and type callback args explicitly so we retain full type safety where it matters.
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-/** Typed helper so `content` items carry the literal `type: "text"` the SDK requires. */
 type McpResult = { content: Array<{ type: "text"; text: string }>; isError?: boolean };
 
 const text = (t: string): { type: "text"; text: string } => ({ type: "text", text: t });
@@ -23,13 +15,12 @@ interface SessionEntry {
 
 const sessions = new Map<string, SessionEntry>();
 
-function createMcpServer(): McpServer {
+export function createMcpServer(): McpServer {
   const server = new McpServer({
     name: "checkbot-rag",
     version: "1.0.0",
   });
 
-  // Primary search interface for LibreChat agents.
   server.registerTool(
     "search_factchecks",
     {
@@ -73,7 +64,6 @@ function createMcpServer(): McpServer {
             if (claim.categories.length > 0)
               lines.push(`- Kategorien: ${claim.categories.join(", ")}`);
 
-            // Include the best matching chunk content for context
             const bestChunk = claim.chunks.sort((a, b) => b.rrfScore - a.rrfScore)[0];
             if (bestChunk && bestChunk.chunkType === "fact_detail") {
               const excerpt = bestChunk.content.slice(0, 500);
@@ -99,7 +89,6 @@ function createMcpServer(): McpServer {
     }
   );
 
-  // Retrieve a full fact-check by ID or short_id.
   server.registerTool(
     "get_factcheck",
     {
@@ -149,7 +138,6 @@ function createMcpServer(): McpServer {
     }
   );
 
-  // Returns available categories with claim counts.
   server.registerTool(
     "list_categories",
     {
@@ -178,36 +166,29 @@ function createMcpServer(): McpServer {
   return server;
 }
 
-// Create a Koa router that handles /mcp with stateful HTTP/SSE sessions.
-// Each LibreChat connection gets its own session identified by mcp-session-id header.
-export function createMcpRouter(): Router {
-  const router = new Router();
+export type NodeReq = import("http").IncomingMessage;
+export type NodeRes = import("http").ServerResponse;
 
-  router.all("/mcp", async (ctx: Koa.Context) => {
-    const sessionId = ctx.headers["mcp-session-id"] as string | undefined;
-    let sessionEntry = sessionId ? sessions.get(sessionId) : undefined;
+export async function handleMcpRequest(
+  req: NodeReq,
+  res: NodeRes,
+  body: unknown
+): Promise<void> {
+  const sessionId = req.headers["mcp-session-id"] as string | undefined;
+  let sessionEntry = sessionId ? sessions.get(sessionId) : undefined;
 
-    if (!sessionEntry) {
-      const mcpServer = createMcpServer();
-      const transport = new StreamableHTTPServerTransport({
-        sessionIdGenerator: () => randomUUID(),
-        onsessioninitialized: (id) => {
-          sessions.set(id, { transport });
-        },
-      });
+  if (!sessionEntry) {
+    const mcpServer = createMcpServer();
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: () => randomUUID(),
+      onsessioninitialized: (id) => {
+        sessions.set(id, { transport });
+      },
+    });
 
-      await mcpServer.connect(transport);
-      sessionEntry = { transport };
-    }
+    await mcpServer.connect(transport);
+    sessionEntry = { transport };
+  }
 
-    // Pass raw Node.js req/res — the transport handles headers and streaming
-    const body =
-      ctx.method === "POST" ? (ctx.request as { body?: unknown }).body : undefined;
-    await sessionEntry.transport.handleRequest(ctx.req, ctx.res, body);
-
-    // Prevent Koa from sending its own response after the transport responds
-    ctx.respond = false;
-  });
-
-  return router;
+  await sessionEntry.transport.handleRequest(req, res, body);
 }

@@ -1,0 +1,15 @@
+{
+  "name": "@checkbot/rag",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "frontend",
+    "backend",
+    "core"
+  ],
+  "scripts": {
+    "build": "bun run --cwd core build && bun run --cwd frontend build"
+  }
+}
+

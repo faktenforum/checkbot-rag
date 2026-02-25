@@ -14,12 +14,7 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "baseUrl": ".",
-    "paths": {
-      "@checkbot/core/*": ["../core/src/*"],
-      "@checkbot/core": ["../core/src/index.ts"]
-    }
+    "composite": false,
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src"]
 }

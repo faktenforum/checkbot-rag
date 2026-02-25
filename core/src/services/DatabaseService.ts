@@ -42,10 +42,9 @@ export class DatabaseService {
       `);
 
       const migrationsDir = path.join(path.dirname(fileURLToPath(import.meta.url)), "../migrations");
-      const files = fs
-        .readdirSync(migrationsDir)
-        .filter((f) => f.endsWith(".sql"))
-        .sort();
+      const files = fs.existsSync(migrationsDir)
+        ? fs.readdirSync(migrationsDir).filter((f) => f.endsWith(".sql")).sort()
+        : [];
 
       for (const file of files) {
         const { rows } = await client.query(
