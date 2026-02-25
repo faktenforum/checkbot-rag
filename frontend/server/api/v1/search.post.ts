@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
   const result = SearchRequestSchema.safeParse(body);
   if (!result.success) {
     setResponseStatus(event, 400);
-    return { error: "Validation error", details: result.error.flatten() };
+    return { error: "Validation error", details: z.treeifyError(result.error) };
   }
   const { query, limit, categories, ratingLabel, chunkType } = result.data;
   return searchService.search({ query, limit, categories, ratingLabel, chunkType });

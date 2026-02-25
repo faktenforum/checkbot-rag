@@ -1,25 +1,6 @@
 import { config } from "../config";
 import type { ClaimJson, ClaimFact, ClaimSource } from "../types/claim";
-
-export interface Chunk {
-  chunkType: "claim_overview" | "fact_detail";
-  factIndex: number | null;
-  content: string;
-  metadata: ChunkMetadata;
-}
-
-export interface ChunkMetadata {
-  claimId: string;
-  externalId: string;
-  shortId: string;
-  chunkType: "claim_overview" | "fact_detail";
-  factIndex: number | null;
-  ratingLabel: string | null;
-  categories: string[];
-  publishingDate: string | null;
-  publishingUrl: string | null;
-  status: string;
-}
+import type { Chunk, ChunkMetadata } from "../types/chunking";
 
 export class ChunkingService {
   private readonly maxChunkChars: number;

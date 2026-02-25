@@ -1,11 +1,13 @@
 import { send, setResponseHeader, setResponseStatus } from "h3";
+import { defineNitroPlugin } from "nitropack/runtime/internal/plugin";
 
 export default defineNitroPlugin((nitroApp) => {
   nitroApp.hooks.hook("error", async (error, { event }) => {
     if (!event) return;
-    const status = error.statusCode ?? (error as { status?: number }).status ?? 500;
+    const err = error as { statusCode?: number; status?: number; message?: string };
+    const status = err.statusCode ?? err.status ?? 500;
     const message =
-      status < 500 ? (error.message ?? "Bad request") : "Internal server error";
+      status < 500 ? (err.message ?? "Bad request") : "Internal server error";
     if (status >= 500) {
       console.error("[App] Unhandled error:", error);
     }

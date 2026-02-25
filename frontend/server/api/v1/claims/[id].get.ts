@@ -1,4 +1,4 @@
-import { db } from "@checkbot/core";
+import { claimsService } from "@checkbot/core";
 import { defineEventHandler, getRouterParam, setResponseStatus } from "h3";
 
 export default defineEventHandler(async (event) => {
@@ -9,26 +9,11 @@ export default defineEventHandler(async (event) => {
   }
   const idStr = decodeURIComponent(id);
 
-  const { rows } = await db.query(
-    `SELECT c.*, json_agg(
-       json_build_object(
-         'id', ch.id,
-         'chunk_type', ch.chunk_type,
-         'fact_index', ch.fact_index,
-         'content', ch.content,
-         'metadata', ch.metadata
-       ) ORDER BY ch.chunk_type DESC, ch.fact_index ASC NULLS FIRST
-     ) AS chunks
-     FROM public.claims c
-     LEFT JOIN public.chunks ch ON ch.claim_id = c.id
-     WHERE c.external_id::text = $1 OR c.short_id = $1
-     GROUP BY c.id`,
-    [idStr]
-  );
+  const claim = await claimsService.get(idStr);
 
-  if (rows.length === 0) {
+  if (!claim) {
     setResponseStatus(event, 404);
     return { error: "Claim not found" };
   }
-  return rows[0];
+  return claim;
 });

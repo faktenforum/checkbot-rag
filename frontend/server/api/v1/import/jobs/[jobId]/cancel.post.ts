@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
     return { error: "Invalid job id", details: parsed.error.flatten() };
   }
 
-  const job = await importService.cancelJob(parsed.data);
+  const job = await importService.cancel(parsed.data);
   if (!job) {
     setResponseStatus(event, 404);
     return { error: "Import job not found" };

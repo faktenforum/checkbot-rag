@@ -7,6 +7,6 @@ export default defineEventHandler(async (event) => {
     return { error: "Node req/res not available" };
   }
   const body =
-    getMethod(event) === "POST" ? await readRawBody(event) ?? undefined : undefined;
+    event.method === "POST" ? await readRawBody(event) ?? undefined : undefined;
   await handleMcpRequest(node.req, node.res, body);
 });

@@ -36,7 +36,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const source = filePath.split("/").pop() ?? filePath;
-  const jobId = await importService.startImport(claims, source);
+  const jobId = await importService.start(claims, source);
 
   setResponseStatus(event, 202);
   return {

@@ -1,4 +1,5 @@
 import { config } from "@checkbot/core";
+import { defineEventHandler, getHeader, setResponseStatus, setResponseHeader } from "h3";
 
 export default defineEventHandler((event) => {
   if (event.path !== "/mcp") return;

@@ -8,10 +8,10 @@ export default defineEventHandler(async (event) => {
   const parsed = JobIdParamSchema.safeParse(jobId);
   if (!parsed.success) {
     setResponseStatus(event, 400);
-    return { error: "Invalid job id", details: parsed.error.flatten() };
+    return { error: "Invalid job id", details: z.treeifyError(parsed.error) };
   }
 
-  const status = await importService.getJobStatus(parsed.data);
+  const status = await importService.get(parsed.data);
   if (!status) {
     setResponseStatus(event, 404);
     return { error: "Import job not found" };

@@ -1,4 +1,5 @@
 import { db } from "@checkbot/core";
+import { defineEventHandler } from "h3";
 
 let initialized = false;
 let initPromise: Promise<void> | null = null;

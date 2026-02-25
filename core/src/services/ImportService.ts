@@ -1,34 +1,12 @@
 import crypto from "node:crypto";
 import type { PoolClient } from "pg";
 import type { ClaimJson } from "../types/claim";
+import type {
+  ImportJobStatus,
+} from "../types/import";
 import { chunkingService } from "./ChunkingService";
 import { db } from "./DatabaseService";
 import { EmbeddingService } from "./EmbeddingService";
-
-export type ImportJobStatusValue = "pending" | "running" | "done" | "failed" | "canceled";
-
-export interface ImportJobStatus {
-  id: string;
-  status: ImportJobStatusValue;
-  source: string;
-  total: number;
-  processed: number;
-  skipped: number;
-  errors: number;
-  errorMessage?: string;
-  startedAt?: Date;
-  completedAt?: Date;
-  canceledAt?: Date;
-  createdAt: Date;
-}
-
-export interface ImportResult {
-  jobId: string;
-  total: number;
-  processed: number;
-  skipped: number;
-  errors: number;
-}
 
 export class ImportService {
   private readonly embeddingService: EmbeddingService;
@@ -39,9 +17,11 @@ export class ImportService {
     this.embeddingService = new EmbeddingService();
   }
 
-  // Start an import from a pre-parsed JSON array.
-  // Runs in the background; call getJobStatus(jobId) to poll progress.
-  async startImport(claims: ClaimJson[], source: string): Promise<string> {
+  /**
+   * Start an import job from a pre-parsed JSON array of claims.
+   * Runs in the background; use {@link get} to poll job status.
+   */
+  async start(claims: ClaimJson[], source: string): Promise<string> {
     const { rows } = await db.query<{ id: string }>(
       `INSERT INTO public.import_jobs (status, source, total)
        VALUES ('pending', $1, $2)
@@ -72,7 +52,10 @@ export class ImportService {
     return jobId;
   }
 
-  async getJobStatus(jobId: string): Promise<ImportJobStatus | null> {
+  /**
+   * Get status for a single import job.
+   */
+  async get(jobId: string): Promise<ImportJobStatus | null> {
     // Try in-memory first for live progress
     const cached = this.jobs.get(jobId);
     if (cached) return cached;
@@ -117,7 +100,10 @@ export class ImportService {
     };
   }
 
-  async listJobs(limit = 20): Promise<ImportJobStatus[]> {
+  /**
+   * List recent import jobs ordered by creation time.
+   */
+  async list(limit = 20): Promise<ImportJobStatus[]> {
     const { rows } = await db.query<{
       id: string;
       status: string;
@@ -158,8 +144,8 @@ export class ImportService {
    * Request cancellation of a running or pending job.
    * Returns the updated job status or null if not found.
    */
-  async cancelJob(jobId: string): Promise<ImportJobStatus | null> {
-    const status = await this.getJobStatus(jobId);
+  async cancel(jobId: string): Promise<ImportJobStatus | null> {
+    const status = await this.get(jobId);
     if (!status) {
       return null;
     }
@@ -184,11 +170,11 @@ export class ImportService {
   }
 
   /**
-   * Delete a job only if it is in a terminal state (done, failed, canceled).
-   * Returns true on delete, false if not found or not deletable.
+   * Delete a job if it is in a terminal state (done, failed, or canceled).
+   * Returns a status string indicating the result.
    */
-  async deleteJob(jobId: string): Promise<"deleted" | "not_found" | "not_deletable"> {
-    const status = await this.getJobStatus(jobId);
+  async delete(jobId: string): Promise<"deleted" | "not_found" | "not_deletable"> {
+    const status = await this.get(jobId);
     if (!status) {
       return "not_found";
     }

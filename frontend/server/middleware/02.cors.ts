@@ -1,3 +1,5 @@
+import { defineEventHandler, getHeader, setResponseHeader, setResponseStatus } from "h3";
+
 const CORS_ORIGINS = [
   "",
   "http://localhost:3020",
@@ -15,8 +17,8 @@ export default defineEventHandler((event) => {
   }
   setResponseHeader(event, "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   setResponseHeader(event, "Access-Control-Allow-Headers", "Content-Type, mcp-session-id, Authorization");
-  setResponseHeader(event, "Access-Control-Max-Age", "86400");
-  if (getMethod(event) === "OPTIONS") {
+  setResponseHeader(event, "Access-Control-Max-Age", 86400);
+  if (event.method === "OPTIONS") {
     setResponseStatus(event, 204);
     return null;
   }
