@@ -2,6 +2,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { claimsService } from "@checkbot/core";
 import type { McpResult } from "../types.js";
 import { text } from "../types.js";
+import { z } from "zod";
 
 export const registerGetFactcheckTool = (server: McpServer): void => {
   server.registerTool(
@@ -9,19 +10,15 @@ export const registerGetFactcheckTool = (server: McpServer): void => {
     {
       description:
         "Get the full details of a specific fact-check by its ID or short ID (for example '2025/11/20-2').",
-      inputSchema: {
-        id: {
-          type: "string",
-          description:
-            "Fact-check ID (UUID) or short ID (for example '2025/11/20-2').",
-        } as any,
-      },
+      // Use an empty input schema to avoid Zod interop issues.
+      // The tool still expects an `id` field in `arguments` at runtime.
+      inputSchema: z.object({ id: z.string() }),
     },
-    async (args: any): Promise<McpResult> => {
-      const { id } = args as { id: string };
+    async (args): Promise<McpResult> => {
+      const { id } = args;
       try {
         const claim = (await claimsService.get(id)) as
-          | (Record<string, unknown> & { categories?: unknown })
+          | (Record<string, unknown> & { categories?: string[] })
           | null;
 
         if (!claim) {

@@ -15,9 +15,9 @@ export const registerSearchFactchecksTool = (server: McpServer): void => {
         limit: z.number().optional().default(5).describe("Number of results (1-20, default: 5)"),
         categories: z.array(z.string()).optional().describe("Filter by categories"),
         rating_label: z.string().optional().describe("Filter by rating label"),
-      } as any,
+      },
     },
-    async (args: any): Promise<McpResult> => {
+    async (args): Promise<McpResult> => {
       const { query, limit, categories, rating_label } = args as {
         query: string;
         limit?: number;
