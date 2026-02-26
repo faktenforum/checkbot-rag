@@ -1,4 +1,7 @@
-import { searchService } from "@checkbot/core";
+import {
+  AUTO_LANGUAGE_ERROR_MESSAGE,
+  searchService,
+} from "@checkbot/core";
 import { defineEventHandler, readBody, setResponseStatus } from "h3";
 import { z } from "zod";
 import { SearchRequestSchema } from "../../schemas/search";
@@ -23,14 +26,9 @@ export default defineEventHandler(async (event) => {
     });
   } catch (err) {
     const message = (err as Error).message;
-    if (
-      language === "auto" &&
-      message.includes("Search language 'auto' is not supported yet")
-    ) {
+    if (language === "auto" && message.includes(AUTO_LANGUAGE_ERROR_MESSAGE)) {
       setResponseStatus(event, 400);
-      return {
-        error: "Search language 'auto' is not supported yet; please pass an explicit language code.",
-      };
+      return { error: AUTO_LANGUAGE_ERROR_MESSAGE };
     }
     setResponseStatus(event, 500);
     return { error: "Search failed", details: message };

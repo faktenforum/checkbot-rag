@@ -1,3 +1,4 @@
+import { SEARCH_LANGUAGE_CODES } from "@checkbot/core";
 import { z } from "zod";
 
 export const SearchRequestSchema = z.object({
@@ -6,28 +7,6 @@ export const SearchRequestSchema = z.object({
   categories: z.array(z.string()).optional(),
   ratingLabel: z.string().optional(),
   chunkType: z.enum(["all", "overview", "fact_detail"]).default("all"),
-  language: z
-    .enum([
-      "auto",
-      "de",
-      "en",
-      "fr",
-      "es",
-      "it",
-      "pt",
-      "nl",
-      "da",
-      "fi",
-      "no",
-      "nb",
-      "nn",
-      "ru",
-      "sv",
-      "tr",
-      "ro",
-      "hu",
-      "id",
-    ])
-    .default("auto"),
+  language: z.enum(SEARCH_LANGUAGE_CODES).default("auto"),
 });
 

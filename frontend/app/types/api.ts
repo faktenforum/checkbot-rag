@@ -1,4 +1,5 @@
 // API response types — must match backend DTOs
+import type { SearchLanguage as CoreSearchLanguage } from "@checkbot/core";
 
 export interface SearchResultChunk {
   chunkId: number;
@@ -36,26 +37,7 @@ export interface SearchResponse {
   claims: SearchResultClaim[];
 }
 
-export type SearchLanguage =
-  | "auto"
-  | "de"
-  | "en"
-  | "fr"
-  | "es"
-  | "it"
-  | "pt"
-  | "nl"
-  | "da"
-  | "fi"
-  | "no"
-  | "nb"
-  | "nn"
-  | "ru"
-  | "sv"
-  | "tr"
-  | "ro"
-  | "hu"
-  | "id";
+export type SearchLanguage = CoreSearchLanguage;
 
 export interface SearchRequest {
   query: string;

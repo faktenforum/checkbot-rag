@@ -1,31 +1,14 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { searchService } from "@checkbot/core";
+import {
+  AUTO_LANGUAGE_ERROR_MESSAGE,
+  SEARCH_LANGUAGE_CODES,
+  searchService,
+} from "@checkbot/core";
 import type { McpResult } from "../types.js";
 import { text } from "../types.js";
 
-const LanguageSchema = z.enum([
-  "auto",
-  "de",
-  "en",
-  "fr",
-  "es",
-  "it",
-  "pt",
-  "nl",
-  "da",
-  "fi",
-  "no",
-  "nb",
-  "nn",
-  "ru",
-  "sv",
-  "tr",
-  "ro",
-  "hu",
-  "id",
-]);
-
+const LanguageSchema = z.enum(SEARCH_LANGUAGE_CODES);
 type SearchLanguage = z.infer<typeof LanguageSchema>;
 
 export const registerSearchFactchecksTool = (server: McpServer): void => {
@@ -106,12 +89,12 @@ export const registerSearchFactchecksTool = (server: McpServer): void => {
         const message = (err as Error).message;
         if (
           (language === undefined || language === "auto") &&
-          message.includes("Search language 'auto' is not supported yet")
+          message.includes(AUTO_LANGUAGE_ERROR_MESSAGE)
         ) {
           return {
             content: [
               text(
-                "Search language 'auto' is not supported yet; please pass an explicit language code (e.g. 'de' or 'en')."
+                `${AUTO_LANGUAGE_ERROR_MESSAGE} (e.g. 'de' or 'en').`
               ),
             ],
             isError: true,

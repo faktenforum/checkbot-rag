@@ -2,12 +2,14 @@ import { config } from "../config";
 import { db } from "./DatabaseService";
 import { EmbeddingService } from "./EmbeddingService";
 import { applyRRF, type RawSearchResult } from "../utils/rrf";
-import type {
-  SearchOptions,
-  SearchResponse,
-  SearchResultClaim,
-  SearchResultChunk,
-} from "../types/search";
+import {
+  AUTO_LANGUAGE_ERROR_MESSAGE,
+  getFtsConfig,
+  type SearchOptions,
+  type SearchResponse,
+  type SearchResultClaim,
+  type SearchResultChunk,
+} from "../types/search.js";
 
 export class SearchService {
   private readonly embeddingService: EmbeddingService;
@@ -27,9 +29,7 @@ export class SearchService {
     } = options;
 
     if (language === "auto") {
-      throw new Error(
-        "Search language 'auto' is not supported yet; please pass an explicit language code."
-      );
+      throw new Error(AUTO_LANGUAGE_ERROR_MESSAGE);
     }
 
     const { weightVec, weightFts, rrfK, overfetchFactor } = config.search;
@@ -82,47 +82,8 @@ export class SearchService {
       LIMIT $${paramIdx}
     `;
 
-    // FTS search: language-aware configuration using PostgreSQL text search configs.
-    // We currently compute the tsvector on the fly for all languages. The generated
-    // `fts_vector` column in the database can be wired in later as a performance
-    // optimisation once we settle on stable per-chunk language metadata.
-    let ftsConfig: string = "simple";
-
-    if (language === "de") {
-      ftsConfig = "german";
-    } else if (language === "en") {
-      ftsConfig = "english";
-    } else if (language === "fr") {
-      ftsConfig = "french";
-    } else if (language === "es") {
-      ftsConfig = "spanish";
-    } else if (language === "it") {
-      ftsConfig = "italian";
-    } else if (language === "pt") {
-      ftsConfig = "portuguese";
-    } else if (language === "nl") {
-      ftsConfig = "dutch";
-    } else if (language === "da") {
-      ftsConfig = "danish";
-    } else if (language === "fi") {
-      ftsConfig = "finnish";
-    } else if (language === "no" || language === "nb" || language === "nn") {
-      ftsConfig = "norwegian";
-    } else if (language === "ru") {
-      ftsConfig = "russian";
-    } else if (language === "sv") {
-      ftsConfig = "swedish";
-    } else if (language === "tr") {
-      ftsConfig = "turkish";
-    } else if (language === "ro") {
-      ftsConfig = "romanian";
-    } else if (language === "hu") {
-      ftsConfig = "hungarian";
-    } else if (language === "id") {
-      ftsConfig = "indonesian";
-    } else {
-      ftsConfig = "simple";
-    }
+    // FTS: tsvector computed on the fly per language (no stored fts_vector column).
+    const ftsConfig = getFtsConfig(language);
 
     const ftsQuery = `
       SELECT
