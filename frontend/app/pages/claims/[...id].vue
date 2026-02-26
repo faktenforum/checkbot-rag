@@ -2,10 +2,10 @@
   <div class="space-y-6">
     <div class="flex items-center gap-3">
       <UButton to="/claims" variant="ghost" icon="i-heroicons-arrow-left" size="sm">
-        Zurück
+        {{ t('common.back') }}
       </UButton>
       <h1 class="h1 truncate">
-        {{ claim?.short_id ?? "Faktencheck" }}
+        {{ claim?.short_id ?? t('claims.factcheck') }}
       </h1>
     </div>
 
@@ -32,21 +32,21 @@
             v-if="claim.rating_statement"
             class="bg-neutral-50 dark:bg-neutral-800 rounded-lg p-4 text-sm leading-relaxed"
           >
-            <p class="text-xs text-neutral-400 font-medium uppercase tracking-wide mb-2">Einschätzung</p>
+            <p class="text-xs text-neutral-400 font-medium uppercase tracking-wide mb-2">{{ t('claim.assessment') }}</p>
             <p>{{ claim.rating_statement }}</p>
           </div>
 
           <div class="flex flex-wrap gap-2 text-sm text-neutral-500">
             <div class="flex items-center gap-1">
               <UIcon name="i-heroicons-tag" class="w-4 h-4" />
-              <span>{{ (claim.categories ?? []).join(", ") || "—" }}</span>
+              <span>{{ (claim.categories ?? []).join(", ") || t('common.na') }}</span>
             </div>
             <div class="flex items-center gap-1">
               <UIcon name="i-heroicons-calendar" class="w-4 h-4" />
               <span>{{
                 claim.publishing_date
-                  ? new Date(claim.publishing_date).toLocaleDateString("de-DE")
-                  : "—"
+                  ? formatDate(claim.publishing_date)
+                  : t('common.na')
               }}</span>
             </div>
             <div class="flex items-center gap-1">
@@ -68,7 +68,7 @@
               icon="i-heroicons-arrow-top-right-on-square"
               size="sm"
             >
-              Zum Faktencheck
+              {{ t('claim.toFactcheck') }}
             </UButton>
           </div>
         </div>
@@ -78,9 +78,9 @@
       <div class="space-y-3">
         <h2 class="h2 flex items-center gap-2">
           <UIcon name="i-heroicons-squares-2x2" class="w-5 h-5" />
-          Chunks ({{ claim.chunks?.length ?? 0 }})
+          {{ t('claim.chunksTitle') }} ({{ claim.chunks?.length ?? 0 }})
           <UBadge color="neutral" variant="soft" size="xs">
-            Embedding-Einheiten
+            {{ t('claim.embeddingUnits') }}
           </UBadge>
         </h2>
 
@@ -97,9 +97,9 @@
                 variant="soft"
                 size="xs"
               >
-                {{ chunk.chunk_type === "claim_overview" ? "Übersicht" : `Fakt ${chunk.fact_index}` }}
+                {{ chunk.chunk_type === "claim_overview" ? t('claim.chunkOverview') : t('claim.chunkFact', { n: chunk.fact_index }) }}
               </UBadge>
-              <span class="text-xs text-neutral-400">{{ chunk.content.length }} Zeichen</span>
+              <span class="text-xs text-neutral-400">{{ t('claim.charCount', { n: chunk.content.length }) }}</span>
             </div>
             <p class="text-sm text-neutral-700 dark:text-neutral-300 whitespace-pre-wrap leading-relaxed">
               {{ chunk.content }}
@@ -116,6 +116,8 @@ import { useQuery } from "@tanstack/vue-query";
 import type { ClaimDetail } from "../../types/api";
 
 const route = useRoute();
+const { t } = useI18n();
+const { formatDate } = useLocaleDate();
 const { apiFetch } = useApi();
 
 // Catch-all [...id]: id can be "2026/01/27-2" (one segment) or ["2026","01","27-2"] (multiple segments)

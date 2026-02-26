@@ -1,0 +1,109 @@
+{
+  "nav": {
+    "start": "Start",
+    "claims": "Claims",
+    "import": "Import",
+    "ariaLabel": "Hauptnavigation",
+    "openAria": "Navigation öffnen"
+  },
+  "search": {
+    "title": "Faktencheck-Suche",
+    "placeholder": "Suche nach Faktenchecks...",
+    "button": "Suchen",
+    "noResults": "Keine Faktenchecks gefunden",
+    "resultsCount": "{count} Ergebnis für „{query}\" | {count} Ergebnisse für „{query}\"",
+    "relevantSnippet": "Relevanter Ausschnitt",
+    "score": "Score",
+    "languageLabel": "Sprache"
+  },
+  "filter": {
+    "rating": "Urteil",
+    "category": "Kategorie",
+    "language": "Sprache",
+    "status": "Status",
+    "allRatings": "Alle Urteile",
+    "allCategories": "Alle Kategorien",
+    "allStatuses": "Alle Status"
+  },
+  "language": {
+    "auto": "Auto (später)",
+    "de": "Deutsch",
+    "en": "Englisch",
+    "fr": "Französisch",
+    "es": "Spanisch",
+    "it": "Italienisch",
+    "pt": "Portugiesisch"
+  },
+  "limit": {
+    "n5": "5 Ergebnisse",
+    "n10": "10 Ergebnisse",
+    "n20": "20 Ergebnisse"
+  },
+  "stats": {
+    "claims": "Faktenchecks",
+    "chunks": "Chunks",
+    "embedded": "Eingebettet",
+    "embeddingRate": "Einbettungsrate"
+  },
+  "claims": {
+    "title": "Faktenchecks",
+    "importButton": "Importieren",
+    "columnId": "ID",
+    "columnSynopsis": "Behauptung",
+    "columnRating": "Urteil",
+    "columnCategories": "Kategorien",
+    "columnLanguage": "Sprache",
+    "columnDate": "Datum",
+    "totalCount": "{count} Faktenchecks insgesamt",
+    "factcheck": "Faktencheck"
+  },
+  "claim": {
+    "assessment": "Einschätzung",
+    "toFactcheck": "Zum Faktencheck",
+    "chunksTitle": "Chunks",
+    "embeddingUnits": "Embedding-Einheiten",
+    "chunkOverview": "Übersicht",
+    "chunkFact": "Fakt {n}",
+    "charCount": "{n} Zeichen",
+    "languageLabel": "Sprache"
+  },
+  "status": {
+    "submitted": "Eingereicht",
+    "checked": "Geprüft",
+    "published": "Veröffentlicht",
+    "imported": "Importiert"
+  },
+  "import": {
+    "title": "Import",
+    "cardTitle": "Faktenchecks importieren",
+    "pathIntro": "Vollständiger Pfad im Container:",
+    "pathVolume": "Dateien liegen im Host unter",
+    "pathVolumeSuffix": "(Volume:",
+    "claimsLanguage": "Sprache der Faktenchecks",
+    "startButton": "Import starten",
+    "jobsTitle": "Import-Jobs",
+    "refresh": "Aktualisieren",
+    "noJobs": "Noch keine Import-Jobs",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "progress": "{processed} importiert · {skipped} übersprungen · {errors} Fehler",
+    "total": "{count} gesamt",
+    "placeholderPath": "/data/exports/2026-02-18T19-29-23-254Z_claims_dump-sample.json"
+  },
+  "jobStatus": {
+    "pending": "Ausstehend",
+    "running": "Läuft",
+    "done": "Fertig",
+    "failed": "Fehlgeschlagen",
+    "canceled": "Abgebrochen"
+  },
+  "rating": {
+    "unknown": "unbekannt"
+  },
+  "common": {
+    "source": "Quelle",
+    "details": "Details",
+    "back": "Zurück",
+    "na": "—"
+  }
+}

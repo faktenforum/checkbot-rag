@@ -6,13 +6,15 @@ defineProps<{
   status: JobStatus;
 }>();
 
-const labelByStatus: Record<JobStatus, string> = {
-  pending: "Ausstehend",
-  running: "Läuft",
-  done: "Fertig",
-  failed: "Fehlgeschlagen",
-  canceled: "Abgebrochen",
-};
+const { t } = useI18n();
+
+const labelByStatus = computed<Record<JobStatus, string>>(() => ({
+  pending: t("jobStatus.pending"),
+  running: t("jobStatus.running"),
+  done: t("jobStatus.done"),
+  failed: t("jobStatus.failed"),
+  canceled: t("jobStatus.canceled"),
+}));
 
 const colorByStatus: Record<JobStatus, BadgeColor> = {
   pending: "neutral",

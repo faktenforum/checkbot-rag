@@ -1,0 +1,109 @@
+{
+  "nav": {
+    "start": "Home",
+    "claims": "Claims",
+    "import": "Import",
+    "ariaLabel": "Main navigation",
+    "openAria": "Open navigation"
+  },
+  "search": {
+    "title": "Fact-check search",
+    "placeholder": "Search fact checks...",
+    "button": "Search",
+    "noResults": "No fact checks found",
+    "resultsCount": "{count} result for \"{query}\" | {count} results for \"{query}\"",
+    "relevantSnippet": "Relevant excerpt",
+    "score": "Score",
+    "languageLabel": "Language"
+  },
+  "filter": {
+    "rating": "Rating",
+    "category": "Category",
+    "language": "Language",
+    "status": "Status",
+    "allRatings": "All ratings",
+    "allCategories": "All categories",
+    "allStatuses": "All statuses"
+  },
+  "language": {
+    "auto": "Auto (later)",
+    "de": "German",
+    "en": "English",
+    "fr": "French",
+    "es": "Spanish",
+    "it": "Italian",
+    "pt": "Portuguese"
+  },
+  "limit": {
+    "n5": "5 results",
+    "n10": "10 results",
+    "n20": "20 results"
+  },
+  "stats": {
+    "claims": "Fact checks",
+    "chunks": "Chunks",
+    "embedded": "Embedded",
+    "embeddingRate": "Embedding rate"
+  },
+  "claims": {
+    "title": "Claims",
+    "importButton": "Import",
+    "columnId": "ID",
+    "columnSynopsis": "Claim",
+    "columnRating": "Rating",
+    "columnCategories": "Categories",
+    "columnLanguage": "Language",
+    "columnDate": "Date",
+    "totalCount": "{count} fact checks total",
+    "factcheck": "Fact check"
+  },
+  "claim": {
+    "assessment": "Assessment",
+    "toFactcheck": "To fact check",
+    "chunksTitle": "Chunks",
+    "embeddingUnits": "Embedding units",
+    "chunkOverview": "Overview",
+    "chunkFact": "Fact {n}",
+    "charCount": "{n} characters",
+    "languageLabel": "Language"
+  },
+  "status": {
+    "submitted": "Submitted",
+    "checked": "Checked",
+    "published": "Published",
+    "imported": "Imported"
+  },
+  "import": {
+    "title": "Import",
+    "cardTitle": "Import fact checks",
+    "pathIntro": "Full path in container:",
+    "pathVolume": "Files on host are under",
+    "pathVolumeSuffix": "(Volume:",
+    "claimsLanguage": "Language of fact checks",
+    "startButton": "Start import",
+    "jobsTitle": "Import jobs",
+    "refresh": "Refresh",
+    "noJobs": "No import jobs yet",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "progress": "{processed} imported · {skipped} skipped · {errors} errors",
+    "total": "{count} total",
+    "placeholderPath": "/data/exports/2026-02-18T19-29-23-254Z_claims_dump-sample.json"
+  },
+  "jobStatus": {
+    "pending": "Pending",
+    "running": "Running",
+    "done": "Done",
+    "failed": "Failed",
+    "canceled": "Canceled"
+  },
+  "rating": {
+    "unknown": "unknown"
+  },
+  "common": {
+    "source": "Source",
+    "details": "Details",
+    "back": "Back",
+    "na": "—"
+  }
+}

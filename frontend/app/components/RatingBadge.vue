@@ -1,10 +1,11 @@
 <template>
   <UBadge :color="badgeColor" variant="subtle" size="sm">
-    {{ label ?? "unbekannt" }}
+    {{ label ?? t('rating.unknown') }}
   </UBadge>
 </template>
 
 <script setup lang="ts">
+const { t } = useI18n();
 const props = defineProps<{ label: string | null | undefined }>();
 
 const badgeColor = computed(() => {

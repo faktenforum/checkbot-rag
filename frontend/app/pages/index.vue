@@ -15,7 +15,7 @@
       <template #header>
         <h1 class="text-lg font-semibold flex items-center gap-2">
           <UIcon name="i-heroicons-magnifying-glass" class="w-5 h-5" />
-          Faktencheck-Suche
+          {{ t('search.title') }}
         </h1>
       </template>
 
@@ -23,14 +23,14 @@
         <div class="flex gap-2">
           <UInput
             v-model="query"
-            placeholder="Suche nach Faktenchecks..."
+            :placeholder="t('search.placeholder')"
             class="flex-1"
             size="lg"
             :loading="pending"
             @keyup.enter="doSearch"
           />
           <UButton size="lg" :loading="pending" icon="i-heroicons-magnifying-glass" @click="doSearch">
-            Suchen
+            {{ t('search.button') }}
           </UButton>
         </div>
 
@@ -39,14 +39,14 @@
           <USelect
             v-model="selectedRating"
             :items="ratingOptions"
-            placeholder="Urteil"
+            :placeholder="t('filter.rating')"
             size="sm"
             class="w-40"
           />
           <USelect
             v-model="selectedCategory"
             :items="categoryOptions"
-            placeholder="Kategorie"
+            :placeholder="t('filter.category')"
             size="sm"
             class="w-44"
           />
@@ -59,7 +59,7 @@
           <USelect
             v-model="language"
             :items="languageOptions"
-            placeholder="Sprache"
+            :placeholder="t('filter.language')"
             size="sm"
             class="w-40"
           />
@@ -74,14 +74,13 @@
     <div v-if="results" class="space-y-4">
       <div class="flex items-center justify-between">
         <p class="text-sm text-neutral-500">
-          {{ results.totalResults }} Ergebnis{{ results.totalResults !== 1 ? "se" : "" }}
-          für „{{ results.query }}"
+          {{ t('search.resultsCount', { count: results.totalResults, query: results.query }) }}
         </p>
       </div>
 
       <div v-if="results.claims.length === 0" class="text-center py-12 text-neutral-400">
         <UIcon name="i-heroicons-face-frown" class="w-12 h-12 mx-auto mb-3" />
-        <p>Keine Faktenchecks gefunden</p>
+        <p>{{ t('search.noResults') }}</p>
       </div>
 
       <UCard
@@ -96,7 +95,7 @@
               <p class="text-xs text-neutral-400 mt-1">
                 {{ claim.shortId }}
                 <span v-if="claim.language">
-                  • Sprache: {{ claim.language }}
+                  • {{ t('search.languageLabel') }}: {{ claim.language }}
                 </span>
               </p>
             </div>
@@ -112,7 +111,7 @@
             v-if="bestFactChunk(claim)"
             class="bg-neutral-50 dark:bg-neutral-800 rounded p-3 text-sm text-neutral-700 dark:text-neutral-300 border-l-2 border-primary-400"
           >
-            <p class="text-xs text-neutral-400 mb-1">Relevanter Ausschnitt</p>
+            <p class="text-xs text-neutral-400 mb-1">{{ t('search.relevantSnippet') }}</p>
             <p class="line-clamp-4">{{ bestFactChunk(claim)!.content }}</p>
           </div>
 
@@ -130,7 +129,7 @@
             </div>
             <div class="flex items-center gap-2">
               <span class="text-xs text-neutral-400">
-                Score: {{ claim.bestScore.toFixed(4) }}
+                {{ t('search.score') }}: {{ claim.bestScore.toFixed(4) }}
               </span>
               <UButton
                 v-if="claim.publishingUrl"
@@ -140,7 +139,7 @@
                 size="xs"
                 icon="i-heroicons-arrow-top-right-on-square"
               >
-                Quelle
+                {{ t('common.source') }}
               </UButton>
               <UButton
                 :to="`/claims/${claim.shortId}`"
@@ -148,7 +147,7 @@
                 size="xs"
                 icon="i-heroicons-eye"
               >
-                Details
+                {{ t('common.details') }}
               </UButton>
             </div>
           </div>
@@ -164,6 +163,7 @@ import type { SearchResultClaim } from "../types/api";
 /** Sentinel for "no filter" – must not be empty string (USelect reserves "" for placeholder). */
 const ALL_FILTER = "__all__";
 
+const { t } = useI18n();
 const { results, pending, error, language, search } = useSearch();
 const { data: stats } = useStats();
 
@@ -173,7 +173,7 @@ const selectedCategory = ref<string>(ALL_FILTER);
 const limit = ref(10);
 
 const ratingOptions = computed(() => [
-  { label: "Alle Urteile", value: ALL_FILTER },
+  { label: t("filter.allRatings"), value: ALL_FILTER },
   ...(stats.value?.ratingLabels.map((r) => ({
     label: `${r.rating_label} (${r.count})`,
     value: r.rating_label,
@@ -181,39 +181,39 @@ const ratingOptions = computed(() => [
 ]);
 
 const categoryOptions = computed(() => [
-  { label: "Alle Kategorien", value: ALL_FILTER },
+  { label: t("filter.allCategories"), value: ALL_FILTER },
   ...(stats.value?.categories.map((c) => ({
     label: `${c.category} (${c.count})`,
     value: c.category,
   })) ?? []),
 ]);
 
-const limitOptions = [
-  { label: "5 Ergebnisse", value: 5 },
-  { label: "10 Ergebnisse", value: 10 },
-  { label: "20 Ergebnisse", value: 20 },
-];
+const limitOptions = computed(() => [
+  { label: t("limit.n5"), value: 5 },
+  { label: t("limit.n10"), value: 10 },
+  { label: t("limit.n20"), value: 20 },
+]);
 
-const languageOptions = [
-  { label: "Auto (später)", value: "auto" },
-  { label: "Deutsch", value: "de" },
-  { label: "Englisch", value: "en" },
-  { label: "Französisch", value: "fr" },
-  { label: "Spanisch", value: "es" },
-  { label: "Italienisch", value: "it" },
-  { label: "Portugiesisch", value: "pt" },
-];
+const languageOptions = computed(() => [
+  { label: t("language.auto"), value: "auto" },
+  { label: t("language.de"), value: "de" },
+  { label: t("language.en"), value: "en" },
+  { label: t("language.fr"), value: "fr" },
+  { label: t("language.es"), value: "es" },
+  { label: t("language.it"), value: "it" },
+  { label: t("language.pt"), value: "pt" },
+]);
 
 const statCards = computed(() => [
-  { label: "Faktenchecks", value: stats.value?.claims.total ?? "—" },
-  { label: "Chunks", value: stats.value?.chunks.total ?? "—" },
-  { label: "Eingebettet", value: stats.value?.chunks.embedded ?? "—" },
+  { label: t("stats.claims"), value: stats.value?.claims.total ?? t("common.na") },
+  { label: t("stats.chunks"), value: stats.value?.chunks.total ?? t("common.na") },
+  { label: t("stats.embedded"), value: stats.value?.chunks.embedded ?? t("common.na") },
   {
-    label: "Einbettungsrate",
+    label: t("stats.embeddingRate"),
     value:
       stats.value && stats.value.chunks.total > 0
         ? `${Math.round((stats.value.chunks.embedded / stats.value.chunks.total) * 100)}%`
-        : "—",
+        : t("common.na"),
   },
 ]);
 
