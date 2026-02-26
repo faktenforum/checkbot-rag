@@ -1,3 +1,24 @@
+export type SearchLanguage =
+  | "auto"
+  | "de"
+  | "en"
+  | "fr"
+  | "es"
+  | "it"
+  | "pt"
+  | "nl"
+  | "da"
+  | "fi"
+  | "no"
+  | "nb"
+  | "nn"
+  | "ru"
+  | "sv"
+  | "tr"
+  | "ro"
+  | "hu"
+  | "id";
+
 export interface SearchOptions {
   query: string;
   limit?: number;
@@ -6,6 +27,11 @@ export interface SearchOptions {
   // 'all': claim_overview + fact_detail (default)
   // 'overview': only claim_overview chunks
   chunkType?: "all" | "overview" | "fact_detail";
+  /**
+   * Optional language hint for the query, e.g. 'de', 'en', or 'auto'.
+   * If omitted, the backend falls back to 'auto' (automatic detection).
+   */
+  language?: SearchLanguage;
 }
 
 export interface SearchResultChunk {

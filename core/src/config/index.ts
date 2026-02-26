@@ -16,9 +16,9 @@ const configSchema = z.object({
     model: z.string().default("qwen3-embedding-8b"),
     apiKey: z.string(),
     baseUrl: z.string().url().default("https://api.scaleway.ai/v1"),
-    // Matryoshka: Qwen3-Embedding-8B supports 4096, 2048, 1024, 512
-    // ~5k chunks at 4096 dims ≈ 320 MB; reduce at 500k+ claims
-    dimensions: z.coerce.number().default(4096),
+    // Matryoshka: Qwen3-Embedding-8B supports 32–4096 dims.
+    // pgvector ANN indexes (HNSW/IVFFlat) support up to 2000 dims, so 1536 is a safe default.
+    dimensions: z.coerce.number().default(1536),
     batchSize: z.coerce.number().default(32),
   }),
 

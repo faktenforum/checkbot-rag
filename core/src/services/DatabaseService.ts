@@ -28,7 +28,9 @@ export class DatabaseService {
   }
 
   // Ensures the embedding vector column and index exist on public.chunks.
-  // HNSW supports up to 2000 dimensions; for higher dims (e.g. 4096) we use IVFFlat.
+  // pgvector indexes (HNSW, IVFFlat) support up to 2000 dimensions.
+  // For higher dims (e.g. 4096), we create the column but skip the ANN index
+  // and fall back to sequential scan for vector search.
   async ensureVectorColumn(): Promise<void> {
     if (this.vectorColumnEnsured) return;
 
@@ -53,12 +55,10 @@ export class DatabaseService {
           `);
           console.log("[DatabaseService] Embedding column and HNSW index created");
         } else {
-          await client.query(`
-            CREATE INDEX IF NOT EXISTS chunks_embedding_idx ON public.chunks
-            USING ivfflat (embedding vector_cosine_ops)
-            WITH (lists = 100)
-          `);
-          console.log("[DatabaseService] Embedding column and IVFFlat index created (dims > 2000)");
+          console.warn(
+            "[DatabaseService] Skipping chunks_embedding_idx: pgvector indexes (HNSW, IVFFlat) support up to 2000 dimensions; configured dimensions=%d. Falling back to sequential scan for vector search.",
+            dims
+          );
         }
       } else {
         console.log(`[DatabaseService] Embedding column exists (dims: ${dims})`);

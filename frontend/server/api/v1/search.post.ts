@@ -10,6 +10,29 @@ export default defineEventHandler(async (event) => {
     setResponseStatus(event, 400);
     return { error: "Validation error", details: z.treeifyError(result.error) };
   }
-  const { query, limit, categories, ratingLabel, chunkType } = result.data;
-  return searchService.search({ query, limit, categories, ratingLabel, chunkType });
+  const { query, limit, categories, ratingLabel, chunkType, language } =
+    result.data;
+  try {
+    return await searchService.search({
+      query,
+      limit,
+      categories,
+      ratingLabel,
+      chunkType,
+      language,
+    });
+  } catch (err) {
+    const message = (err as Error).message;
+    if (
+      language === "auto" &&
+      message.includes("Search language 'auto' is not supported yet")
+    ) {
+      setResponseStatus(event, 400);
+      return {
+        error: "Search language 'auto' is not supported yet; please pass an explicit language code.",
+      };
+    }
+    setResponseStatus(event, 500);
+    return { error: "Search failed", details: message };
+  }
 });

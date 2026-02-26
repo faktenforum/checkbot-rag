@@ -30,10 +30,10 @@ Key variables:
 | `CHECKBOT_RAG_EMBEDDING_MODEL` | `qwen3-embedding-8b` | Embedding model name |
 | `CHECKBOT_RAG_EMBEDDING_API_KEY` | — | Embedding API key (required) |
 | `CHECKBOT_RAG_EMBEDDING_BASE_URL` | `https://api.scaleway.ai/v1` | Embedding API base URL |
-| `CHECKBOT_RAG_EMBEDDING_DIMENSIONS` | `4096` | Embedding dimensions (4096 / 2048 / 1024 / 512) |
+| `CHECKBOT_RAG_EMBEDDING_DIMENSIONS` | `1536` | Embedding dimensions (Matryoshka: 32–4096; recommend ≤ 2000 for pgvector ANN) |
 | `CHECKBOT_RAG_EMBEDDING_BATCH_SIZE` | `32` | Texts per embedding API call |
 | `CHECKBOT_RAG_SEARCH_WEIGHT_VEC` | `1.0` | RRF weight for vector search |
-| `CHECKBOT_RAG_SEARCH_WEIGHT_FTS` | `1.0` | RRF weight for full-text search |
+| `CHECKBOT_RAG_SEARCH_WEIGHT_FTS` | `0.5` | RRF weight for full-text search (language-agnostic) |
 | `CHECKBOT_RAG_RRF_K` | `60` | RRF constant \(k\) |
 | `CHECKBOT_RAG_SEARCH_OVERFETCH` | `3` | Overfetch factor for candidates before RRF |
 | `CHECKBOT_RAG_MAX_CHUNK_CHARS` | `6000` | Max characters per chunk before splitting |
@@ -69,7 +69,7 @@ score(doc) = weight_vec / (k + rank_vec) + weight_fts / (k + rank_fts)
 Defaults:
 
 - `CHECKBOT_RAG_SEARCH_WEIGHT_VEC = 1.0`
-- `CHECKBOT_RAG_SEARCH_WEIGHT_FTS = 1.0`
+- `CHECKBOT_RAG_SEARCH_WEIGHT_FTS = 0.5`
 - `CHECKBOT_RAG_RRF_K = 60`
 
 Documents that appear in both rankings receive the highest fused scores. This improves recall for German queries where both semantic similarity and exact terms (names, legal references, etc.) matter.
@@ -93,7 +93,7 @@ SQL migrations for the `checkbot_rag` database are managed by [dbmate](https://g
 
 - Core tables for claims, chunks, and import jobs.
 - pgvector-enabled columns for embeddings.
-- Full-text search vectors and indexes for German content.
+- Full-text search configuration and indexes for content (language-aware FTS per query).
 
 Migrations are applied before the application starts:
 

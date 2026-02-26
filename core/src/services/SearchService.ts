@@ -23,9 +23,17 @@ export class SearchService {
       categories,
       ratingLabel,
       chunkType = "all",
+      language = "auto",
     } = options;
 
+    if (language === "auto") {
+      throw new Error(
+        "Search language 'auto' is not supported yet; please pass an explicit language code."
+      );
+    }
+
     const { weightVec, weightFts, rrfK, overfetchFactor } = config.search;
+
     // Overfetch to improve RRF recall: fetch more candidates than needed
     const fetchLimit = limit * overfetchFactor;
 
@@ -74,15 +82,61 @@ export class SearchService {
       LIMIT $${paramIdx}
     `;
 
-    // FTS search: German ts_rank_cd with plainto_tsquery
+    // FTS search: language-aware configuration using PostgreSQL text search configs.
+    // We currently compute the tsvector on the fly for all languages. The generated
+    // `fts_vector` column in the database can be wired in later as a performance
+    // optimisation once we settle on stable per-chunk language metadata.
+    let ftsConfig: string = "simple";
+
+    if (language === "de") {
+      ftsConfig = "german";
+    } else if (language === "en") {
+      ftsConfig = "english";
+    } else if (language === "fr") {
+      ftsConfig = "french";
+    } else if (language === "es") {
+      ftsConfig = "spanish";
+    } else if (language === "it") {
+      ftsConfig = "italian";
+    } else if (language === "pt") {
+      ftsConfig = "portuguese";
+    } else if (language === "nl") {
+      ftsConfig = "dutch";
+    } else if (language === "da") {
+      ftsConfig = "danish";
+    } else if (language === "fi") {
+      ftsConfig = "finnish";
+    } else if (language === "no" || language === "nb" || language === "nn") {
+      ftsConfig = "norwegian";
+    } else if (language === "ru") {
+      ftsConfig = "russian";
+    } else if (language === "sv") {
+      ftsConfig = "swedish";
+    } else if (language === "tr") {
+      ftsConfig = "turkish";
+    } else if (language === "ro") {
+      ftsConfig = "romanian";
+    } else if (language === "hu") {
+      ftsConfig = "hungarian";
+    } else if (language === "id") {
+      ftsConfig = "indonesian";
+    } else {
+      ftsConfig = "simple";
+    }
+
     const ftsQuery = `
       SELECT
         c.id,
         NULL::float AS vec_score,
-        ts_rank_cd(c.fts_vector, plainto_tsquery('german', $${paramIdx + 1})) AS fts_score
+        ts_rank_cd(
+          to_tsvector('${ftsConfig}', c.content),
+          plainto_tsquery('${ftsConfig}', $${paramIdx + 1})
+        ) AS fts_score
       FROM public.chunks c
       JOIN public.claims cl ON c.claim_id = cl.id
-      WHERE c.fts_vector @@ plainto_tsquery('german', $${paramIdx + 1})
+      WHERE to_tsvector('${ftsConfig}', c.content) @@ plainto_tsquery('${ftsConfig}', $${
+        paramIdx + 1
+      })
         ${whereClause}
       ORDER BY fts_score DESC
       LIMIT $${paramIdx}

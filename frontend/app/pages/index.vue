@@ -35,7 +35,7 @@
         </div>
 
         <!-- Filters row -->
-        <div class="flex flex-wrap gap-3">
+        <div class="flex flex-wrap gap-3 items-center">
           <USelect
             v-model="selectedRating"
             :items="ratingOptions"
@@ -53,6 +53,13 @@
           <USelect
             v-model="limit"
             :items="limitOptions"
+            size="sm"
+            class="w-40"
+          />
+          <USelect
+            v-model="language"
+            :items="languageOptions"
+            placeholder="Sprache"
             size="sm"
             class="w-40"
           />
@@ -152,7 +159,7 @@ import type { SearchResultClaim } from "../types/api";
 /** Sentinel for "no filter" – must not be empty string (USelect reserves "" for placeholder). */
 const ALL_FILTER = "__all__";
 
-const { results, pending, error, search } = useSearch();
+const { results, pending, error, language, search } = useSearch();
 const { data: stats } = useStats();
 
 const query = ref("");
@@ -180,6 +187,16 @@ const limitOptions = [
   { label: "5 Ergebnisse", value: 5 },
   { label: "10 Ergebnisse", value: 10 },
   { label: "20 Ergebnisse", value: 20 },
+];
+
+const languageOptions = [
+  { label: "Auto (später)", value: "auto" },
+  { label: "Deutsch", value: "de" },
+  { label: "Englisch", value: "en" },
+  { label: "Französisch", value: "fr" },
+  { label: "Spanisch", value: "es" },
+  { label: "Italienisch", value: "it" },
+  { label: "Portugiesisch", value: "pt" },
 ];
 
 const statCards = computed(() => [

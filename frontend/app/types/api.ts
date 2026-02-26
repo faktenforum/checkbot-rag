@@ -35,6 +35,36 @@ export interface SearchResponse {
   claims: SearchResultClaim[];
 }
 
+export type SearchLanguage =
+  | "auto"
+  | "de"
+  | "en"
+  | "fr"
+  | "es"
+  | "it"
+  | "pt"
+  | "nl"
+  | "da"
+  | "fi"
+  | "no"
+  | "nb"
+  | "nn"
+  | "ru"
+  | "sv"
+  | "tr"
+  | "ro"
+  | "hu"
+  | "id";
+
+export interface SearchRequest {
+  query: string;
+  limit?: number;
+  categories?: string[];
+  ratingLabel?: string;
+  chunkType?: "all" | "overview" | "fact_detail";
+  language?: SearchLanguage;
+}
+
 export interface ClaimListItem {
   id: string;
   external_id: string;
