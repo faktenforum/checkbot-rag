@@ -7,6 +7,7 @@ export const SearchRequestSchema = z.object({
   categories: z.array(z.string()).optional(),
   ratingLabel: z.string().optional(),
   chunkType: z.enum(["all", "overview", "fact_detail"]).default("all"),
-  language: z.enum(SEARCH_LANGUAGE_CODES).default("auto"),
+  // default "de" so omitted language works; "auto" is not supported and returns 400
+  language: z.enum(SEARCH_LANGUAGE_CODES).default("de"),
 });
 

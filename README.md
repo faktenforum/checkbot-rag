@@ -4,7 +4,7 @@ Fact-check retrieval service for Faktenforum. Hybrid semantic plus full-text sea
 
 ### Features
 
-- **Hybrid retrieval**: Combines pgvector embeddings and PostgreSQL full-text search with Reciprocal Rank Fusion for high-quality German search.
+- **Hybrid retrieval**: pgvector embeddings plus language-aware PostgreSQL full-text search with RRF; explicit language per query (e.g. de, en; auto not yet supported).
 - **Admin UI**: Nuxt 4 dashboard for searching fact-checks, browsing claims, inspecting chunks, and managing imports.
 - **MCP integration**: First-class Model Context Protocol server with tools for search, detail lookup, and category listing.
 - **Import pipeline**: JSON dump importer with background jobs, progress tracking, cancellation, and re-import of changed claims only.

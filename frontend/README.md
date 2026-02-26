@@ -26,10 +26,10 @@ Routes are implemented under `server/api/v1`. The main endpoints are:
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/health` | Health check that pings PostgreSQL. |
-| `POST` | `/api/v1/search` | Hybrid fact-check search using `searchService`. |
+| `POST` | `/api/v1/search` | Hybrid fact-check search; body: `query`, optional filters, optional `language` (default `de`; `auto` returns 400). |
 | `GET` | `/api/v1/claims` | Paginated list of claims with filters. |
 | `GET` | `/api/v1/claims/:id` | Claim detail by UUID or short ID, including chunks. |
-| `POST` | `/api/v1/import` | Start an import job from a JSON file path inside the container. |
+| `POST` | `/api/v1/import` | Start an import job; body: `filePath`, `language` (e.g. `de`, `en`). |
 | `GET` | `/api/v1/import/jobs` | List recent import jobs. |
 | `GET` | `/api/v1/import/jobs/:jobId` | Get import job status. |
 | `POST` | `/api/v1/import/jobs/:jobId/cancel` | Request cancellation of a running or pending job. |
@@ -44,10 +44,10 @@ All endpoints validate input using Zod schemas under `server/schemas`.
 
 Main pages under `app/pages`:
 
-- `/` - search view with hybrid search, filters (rating, category, limit), and top-level stats.
-- `/claims` - paginated table of claims with filters and links to detail pages.
+- `/` - search view with hybrid search, filters (rating, category, language, limit), and top-level stats.
+- `/claims` - paginated table of claims with filters and links to detail pages; claim detail shows language when set.
 - `/claims/[id]` - fact-check detail page (short ID or UUID), showing metadata and chunks.
-- `/import` - import form (file path inside container) plus live list of import jobs with progress, cancellation, and deletion.
+- `/import` - import form (file path, language) and live list of import jobs with progress, cancellation, and deletion.
 - `/stats` - statistics view (summary of counts and distributions, if present).
 
 Shared layout and shell components (`AppShell`, `SidebarNav`, `Logo*`) live under `app/components` and `app/layouts`.

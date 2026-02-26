@@ -66,8 +66,8 @@ export interface SearchOptions {
   // 'overview': only claim_overview chunks
   chunkType?: "all" | "overview" | "fact_detail";
   /**
-   * Optional language hint for the query, e.g. 'de', 'en', or 'auto'.
-   * If omitted, the backend falls back to 'auto' (automatic detection).
+   * Language for full-text search (e.g. 'de', 'en'). Pass an explicit code;
+   * 'auto' is not supported yet and will be rejected.
    */
   language?: SearchLanguage;
 }

@@ -33,7 +33,7 @@ Key variables:
 | `CHECKBOT_RAG_EMBEDDING_DIMENSIONS` | `1536` | Embedding dimensions (Matryoshka: 32–4096; recommend ≤ 2000 for pgvector ANN) |
 | `CHECKBOT_RAG_EMBEDDING_BATCH_SIZE` | `32` | Texts per embedding API call |
 | `CHECKBOT_RAG_SEARCH_WEIGHT_VEC` | `1.0` | RRF weight for vector search |
-| `CHECKBOT_RAG_SEARCH_WEIGHT_FTS` | `0.5` | RRF weight for full-text search (language-agnostic) |
+| `CHECKBOT_RAG_SEARCH_WEIGHT_FTS` | `0.5` | RRF weight for full-text search |
 | `CHECKBOT_RAG_RRF_K` | `60` | RRF constant \(k\) |
 | `CHECKBOT_RAG_SEARCH_OVERFETCH` | `3` | Overfetch factor for candidates before RRF |
 | `CHECKBOT_RAG_MAX_CHUNK_CHARS` | `6000` | Max characters per chunk before splitting |
@@ -58,7 +58,7 @@ Long facts exceeding `CHECKBOT_RAG_MAX_CHUNK_CHARS` are split at sentence bounda
 Search combines two ranking signals:
 
 1. **Vector search** - pgvector cosine distance on Qwen3 embeddings (semantic similarity).
-2. **Full-text search** - PostgreSQL `tsvector` with `german` dictionary and `ts_rank_cd` scoring (keyword and stem-based).
+2. **Full-text search** - PostgreSQL `tsvector` and `ts_rank_cd` per query language (e.g. german, english); language is set per search request.
 
 Scores are fused using Reciprocal Rank Fusion:
 
@@ -72,20 +72,20 @@ Defaults:
 - `CHECKBOT_RAG_SEARCH_WEIGHT_FTS = 0.5`
 - `CHECKBOT_RAG_RRF_K = 60`
 
-Documents that appear in both rankings receive the highest fused scores. This improves recall for German queries where both semantic similarity and exact terms (names, legal references, etc.) matter.
+Documents that appear in both rankings receive the highest fused scores. Use an explicit search language (e.g. `de`, `en`); `auto` is not supported yet.
 
 ### Dimension scaling reference
 
-Approximate memory usage for embeddings in PostgreSQL:
+Default is 1536 (fits pgvector ANN index; ≤2000). Approximate memory for embeddings:
 
-| Claims | Chunks (~5/claim) | Memory at 4096 dims | Memory at 1024 dims |
-|--------|-------------------|---------------------|---------------------|
-| 1,000 | 5,000 | ~320 MB | ~80 MB |
-| 10,000 | 50,000 | ~3.2 GB | ~800 MB |
-| 100,000 | 500,000 | ~32 GB | ~8 GB |
-| 500,000 | 2.5M | ~160 GB | ~40 GB |
+| Claims | Chunks (~5/claim) | 1536 dims | 1024 dims |
+|--------|-------------------|-----------|-----------|
+| 1,000 | 5,000 | ~120 MB | ~80 MB |
+| 10,000 | 50,000 | ~1.2 GB | ~800 MB |
+| 100,000 | 500,000 | ~12 GB | ~8 GB |
+| 500,000 | 2.5M | ~60 GB | ~40 GB |
 
-If you expect 100k+ claims, consider `CHECKBOT_RAG_EMBEDDING_DIMENSIONS=1024` and re-import. For German-language retrieval, quality loss is usually small compared to the memory savings.
+For 100k+ claims, consider `CHECKBOT_RAG_EMBEDDING_DIMENSIONS=1024` and re-import.
 
 ### Database and migrations
 
