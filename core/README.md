@@ -89,13 +89,49 @@ If you expect 100k+ claims, consider `CHECKBOT_RAG_EMBEDDING_DIMENSIONS=1024` an
 
 ### Database and migrations
 
-SQL migrations live in `src/migrations/*.sql` and define:
+SQL migrations for the `checkbot_rag` database are managed by [dbmate](https://github.com/amacneil/dbmate) and live in `core/db/migrations/*.sql`. They define:
 
 - Core tables for claims, chunks, and import jobs.
 - pgvector-enabled columns for embeddings.
 - Full-text search vectors and indexes for German content.
 
-Migrations are applied by the host service (for example via Docker entrypoints or external tooling) before starting the application.
+Migrations are applied before the application starts:
+
+- In the standalone Docker stack under `dev/checkbot-rag`, the `checkbot-rag-dbmate` service runs `dbmate up` against the `checkbot_rag` database and the migrations in `core/db/migrations` before the `checkbot-rag` service starts.
+- If you run against a database outside that stack, you can run dbmate manually, for example:
+
+  ```bash
+  # from dev/checkbot-rag
+  docker run --rm \
+    -v "$(pwd)/core/db:/db" \
+    --network=host \
+    -e DATABASE_URL="postgres://user:pass@127.0.0.1:5432/checkbot_rag?sslmode=disable" \
+    -e DBMATE_MIGRATIONS_TABLE=checkbot_schema_migrations \
+    ghcr.io/amacneil/dbmate:latest up
+  ```
+
+The `DatabaseService` no longer runs schema migrations. All structural changes to the `checkbot_rag` database are applied via dbmate migrations in `core/db/migrations` before the application starts.
+
+From the repo root there are convenience scripts in `package.json` which reuse the `checkbot-rag-dbmate` service from `docker-compose.yml` (including its environment and volume mounts):
+
+- **Neue Migration anlegen** (nur Dateierzeugung, keine DB-Verbindung nötig):
+
+  ```bash
+  bun run dbmate:new -- add_my_new_table
+  # erzeugt core/db/migrations/<timestamp>_add_my_new_table.sql
+  ```
+
+- **Migrationen anwenden**:
+
+  ```bash
+  bun run dbmate:up
+  ```
+
+- **Letzte Migration zurückrollen**:
+
+  ```bash
+  bun run dbmate:down
+  ```
 
 ### Public API (services and types)
 

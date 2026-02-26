@@ -1,6 +1,3 @@
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { Pool, type PoolClient } from "pg";
 import { config } from "../config";
 
@@ -26,53 +23,8 @@ export class DatabaseService {
   }
 
   async initialize(): Promise<void> {
-    await this.runMigrations();
     await this.ensureVectorColumn();
     console.log("[DatabaseService] Initialized successfully");
-  }
-
-  private async runMigrations(): Promise<void> {
-    const client = await this.pool.connect();
-    try {
-      await client.query(`
-        CREATE TABLE IF NOT EXISTS schema_migrations (
-          filename TEXT PRIMARY KEY,
-          applied_at TIMESTAMPTZ DEFAULT NOW()
-        )
-      `);
-
-      const migrationsDir = path.join(path.dirname(fileURLToPath(import.meta.url)), "../migrations");
-      const files = fs.existsSync(migrationsDir)
-        ? fs.readdirSync(migrationsDir).filter((f) => f.endsWith(".sql")).sort()
-        : [];
-
-      for (const file of files) {
-        const { rows } = await client.query(
-          "SELECT 1 FROM schema_migrations WHERE filename = $1",
-          [file]
-        );
-        if (rows.length > 0) continue;
-
-        console.log(`[DatabaseService] Running migration: ${file}`);
-        const sql = fs.readFileSync(path.join(migrationsDir, file), "utf8");
-
-        await client.query("BEGIN");
-        try {
-          await client.query(sql);
-          await client.query(
-            "INSERT INTO schema_migrations (filename) VALUES ($1)",
-            [file]
-          );
-          await client.query("COMMIT");
-          console.log(`[DatabaseService] Migration applied: ${file}`);
-        } catch (err) {
-          await client.query("ROLLBACK");
-          throw new Error(`Migration ${file} failed: ${(err as Error).message}`);
-        }
-      }
-    } finally {
-      client.release();
-    }
   }
 
   // Ensures the embedding vector column and index exist on public.chunks.

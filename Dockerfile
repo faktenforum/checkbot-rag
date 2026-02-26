@@ -20,7 +20,6 @@ FROM node:24-alpine AS runtime
 WORKDIR /app
 
 COPY --from=builder /build/frontend/.output ./.output
-COPY --from=builder /build/core/src/migrations ./.output/migrations
 
 RUN mkdir -p /data/exports
 

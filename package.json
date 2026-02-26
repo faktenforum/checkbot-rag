@@ -10,7 +10,10 @@
   ],
   "scripts": {
     "build": "bun run --cwd core build && bun run --cwd mcp build && bun run --cwd frontend build",
-    "check": "bun run --cwd core check && bun run --cwd mcp check && bun run --cwd frontend check"
+    "check": "bun run --cwd core check && bun run --cwd mcp check && bun run --cwd frontend check",
+    "dbmate:new": "docker compose run --rm checkbot-rag-dbmate new",
+    "dbmate:up": "docker compose run --rm checkbot-rag-dbmate up",
+    "dbmate:down": "docker compose run --rm checkbot-rag-dbmate rollback"
   }
 }
 
