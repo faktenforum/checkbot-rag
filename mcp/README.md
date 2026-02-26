@@ -18,10 +18,11 @@ The server registers three tools:
 
 - **Description**: Search fact-checks using the hybrid search from `@checkbot/core`.
 - **Input**:
-  - `query` (`string`, required) - search query in German or English.
+  - `query` (`string`, required) - search query.
   - `limit` (`number`, optional, default `5`) - number of results (`1–20`).
   - `categories` (`string[]`, optional) - filter by categories.
   - `rating_label` (`string`, optional) - filter by rating label.
+  - `language` (`string`, optional) - FTS language code (e.g. `de`, `en`, `fr`). Default `auto` is not supported; pass an explicit code.
 
 The tool returns a single Markdown block containing:
 

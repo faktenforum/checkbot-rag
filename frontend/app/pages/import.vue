@@ -2,34 +2,50 @@
   <div class="space-y-6">
     <h1 class="h1 flex items-center gap-2">
       <UIcon name="i-heroicons-arrow-up-tray" class="w-6 h-6" />
-      Import
+      {{ t('import.title') }}
     </h1>
 
     <!-- New import form -->
     <UCard>
       <template #header>
-        <p class="font-medium">Faktenchecks importieren</p>
+        <p class="font-medium">{{ t('import.cardTitle') }}</p>
         <p class="text-sm text-neutral-500 mt-1">
-          Vollständiger Pfad im Container:
+          {{ t('import.pathIntro') }}
           <code class="text-xs bg-neutral-100 dark:bg-neutral-800 px-1 rounded">/data/exports/&lt;Dateiname&gt;.json</code>.
-          Dateien liegen im Host unter <code class="text-xs bg-neutral-100 dark:bg-neutral-800 px-1 rounded">dev/checkbot-rag/exports/</code>
-          (Volume: <code class="text-xs bg-neutral-100 dark:bg-neutral-800 px-1 rounded">./dev/checkbot-rag/exports:/data/exports:ro</code>).
+          {{ t('import.pathVolume') }}
+          <code class="text-xs bg-neutral-100 dark:bg-neutral-800 px-1 rounded">dev/checkbot-rag/exports/</code>
+          {{ t('import.pathVolumeSuffix') }}
+          <code class="text-xs bg-neutral-100 dark:bg-neutral-800 px-1 rounded">./dev/checkbot-rag/exports:/data/exports:ro</code>).
         </p>
       </template>
 
       <div class="space-y-4">
         <UInput
           v-model="filePath"
-          placeholder="/data/exports/2026-02-18T19-29-23-254Z_claims_dump-sample.json"
+          :placeholder="t('import.placeholderPath')"
           icon="i-heroicons-document"
         />
-        <div class="flex justify-end">
+
+        <div class="flex flex-wrap items-center gap-4">
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-neutral-600 dark:text-neutral-300">{{ t('import.claimsLanguage') }}</span>
+            <USelect
+              v-model="language"
+              :options="languageOptions"
+              option-attribute="label"
+              value-attribute="value"
+              class="w-40"
+            />
+          </div>
+
+          <div class="flex-1" />
+
           <UButton
             :loading="importing"
             icon="i-heroicons-play"
             @click="startImport"
           >
-            Import starten
+            {{ t('import.startButton') }}
           </UButton>
         </div>
       </div>
@@ -46,7 +62,7 @@
     <!-- Active and recent jobs -->
     <div class="space-y-3">
       <div class="flex items-center justify-between">
-        <h2 class="h2">Import-Jobs</h2>
+        <h2 class="h2">{{ t('import.jobsTitle') }}</h2>
         <UButton
           variant="ghost"
           size="xs"
@@ -54,7 +70,7 @@
           :loading="fetchingJobs"
           @click="() => void refetch()"
         >
-          Aktualisieren
+          {{ t('import.refresh') }}
         </UButton>
       </div>
 
@@ -63,7 +79,7 @@
       </div>
 
       <div v-else-if="!jobs?.length" class="text-center py-8 text-neutral-400">
-        <p>Noch keine Import-Jobs</p>
+        <p>{{ t('import.noJobs') }}</p>
       </div>
 
       <UCard v-for="job in jobs" :key="job.id" class="space-y-3">
@@ -77,7 +93,7 @@
           </div>
           <div class="flex flex-col items-end gap-1 shrink-0 text-right">
             <p class="text-xs text-neutral-400">
-              {{ new Date(job.createdAt).toLocaleString("de-DE") }}
+              {{ formatDateTime(job.createdAt) }}
             </p>
             <div class="flex gap-2">
               <UButton
@@ -89,7 +105,7 @@
                 :loading="actionLoadingId === job.id && currentAction === 'cancel'"
                 @click="() => cancelJob(job.id)"
               >
-                Abbrechen
+                {{ t('import.cancel') }}
               </UButton>
               <UButton
                 v-if="job.status === 'done' || job.status === 'failed' || job.status === 'canceled'"
@@ -100,7 +116,7 @@
                 :loading="actionLoadingId === job.id && currentAction === 'delete'"
                 @click="() => deleteJob(job.id)"
               >
-                Löschen
+                {{ t('import.delete') }}
               </UButton>
             </div>
           </div>
@@ -122,9 +138,9 @@
           </div>
           <div class="flex justify-between text-xs text-neutral-400">
             <span>
-              {{ job.processed }} importiert · {{ job.skipped }} übersprungen · {{ job.errors }} Fehler
+              {{ t('import.progress', { processed: job.processed, skipped: job.skipped, errors: job.errors }) }}
             </span>
-            <span>{{ job.total }} gesamt</span>
+            <span>{{ t('import.total', { count: job.total }) }}</span>
           </div>
         </div>
 
@@ -141,10 +157,13 @@
 
 <script setup lang="ts">
 import { useQuery } from "@tanstack/vue-query";
-import type { ImportJobStatus } from "../types/api";
+import type { ImportJobStatus, ImportRequest } from "../types/api";
 
+const { t } = useI18n();
+const { formatDateTime } = useLocaleDate();
 const { apiFetch } = useApi();
 const filePath = ref("/data/exports/claims_dump.json");
+const language = ref<string>("de");
 const importing = ref(false);
 const importError = ref<string | null>(null);
 const actionLoadingId = ref<string | null>(null);
@@ -170,7 +189,10 @@ async function startImport() {
   try {
     await apiFetch("/api/v1/import", {
       method: "POST",
-      body: JSON.stringify({ filePath: filePath.value }),
+      body: JSON.stringify({
+        filePath: filePath.value,
+        language: language.value,
+      } satisfies ImportRequest),
     });
     await refetch();
   } catch (err) {
@@ -213,4 +235,13 @@ async function deleteJob(jobId: string) {
     currentAction.value = null;
   }
 }
+
+const languageOptions = computed(() => [
+  { label: t("language.de"), value: "de" },
+  { label: t("language.en"), value: "en" },
+  { label: t("language.fr"), value: "fr" },
+  { label: t("language.es"), value: "es" },
+  { label: t("language.it"), value: "it" },
+  { label: t("language.pt"), value: "pt" },
+]);
 </script>

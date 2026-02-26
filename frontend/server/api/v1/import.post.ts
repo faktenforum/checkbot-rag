@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
     setResponseStatus(event, 400);
     return { error: "Validation error", details: result.error.flatten() };
   }
-  const { filePath } = result.data;
+  const { filePath, language } = result.data;
 
   if (!fs.existsSync(filePath)) {
     setResponseStatus(event, 400);
@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const source = filePath.split("/").pop() ?? filePath;
-  const jobId = await importService.start(claims, source);
+  const jobId = await importService.start(claims, source, language);
 
   setResponseStatus(event, 202);
   return {

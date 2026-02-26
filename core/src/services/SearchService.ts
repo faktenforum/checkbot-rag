@@ -2,12 +2,14 @@ import { config } from "../config";
 import { db } from "./DatabaseService";
 import { EmbeddingService } from "./EmbeddingService";
 import { applyRRF, type RawSearchResult } from "../utils/rrf";
-import type {
-  SearchOptions,
-  SearchResponse,
-  SearchResultClaim,
-  SearchResultChunk,
-} from "../types/search";
+import {
+  AUTO_LANGUAGE_ERROR_MESSAGE,
+  getFtsConfig,
+  type SearchOptions,
+  type SearchResponse,
+  type SearchResultClaim,
+  type SearchResultChunk,
+} from "../types/search.js";
 
 export class SearchService {
   private readonly embeddingService: EmbeddingService;
@@ -23,9 +25,15 @@ export class SearchService {
       categories,
       ratingLabel,
       chunkType = "all",
+      language = "auto",
     } = options;
 
+    if (language === "auto") {
+      throw new Error(AUTO_LANGUAGE_ERROR_MESSAGE);
+    }
+
     const { weightVec, weightFts, rrfK, overfetchFactor } = config.search;
+
     // Overfetch to improve RRF recall: fetch more candidates than needed
     const fetchLimit = limit * overfetchFactor;
 
@@ -74,15 +82,22 @@ export class SearchService {
       LIMIT $${paramIdx}
     `;
 
-    // FTS search: German ts_rank_cd with plainto_tsquery
+    // FTS: tsvector computed on the fly per language (no stored fts_vector column).
+    const ftsConfig = getFtsConfig(language);
+
     const ftsQuery = `
       SELECT
         c.id,
         NULL::float AS vec_score,
-        ts_rank_cd(c.fts_vector, plainto_tsquery('german', $${paramIdx + 1})) AS fts_score
+        ts_rank_cd(
+          to_tsvector('${ftsConfig}', c.content),
+          plainto_tsquery('${ftsConfig}', $${paramIdx + 1})
+        ) AS fts_score
       FROM public.chunks c
       JOIN public.claims cl ON c.claim_id = cl.id
-      WHERE c.fts_vector @@ plainto_tsquery('german', $${paramIdx + 1})
+      WHERE to_tsvector('${ftsConfig}', c.content) @@ plainto_tsquery('${ftsConfig}', $${
+        paramIdx + 1
+      })
         ${whereClause}
       ORDER BY fts_score DESC
       LIMIT $${paramIdx}
@@ -147,12 +162,13 @@ export class SearchService {
       publishing_url: string | null;
       publishing_date: string | null;
       status: string;
+      language: string | null;
     }>(
       `SELECT
          c.id, c.claim_id, c.chunk_type, c.fact_index, c.content, c.metadata,
          cl.external_id, cl.short_id, cl.synopsis, cl.rating_label,
          cl.rating_summary, cl.rating_statement, cl.categories,
-         cl.publishing_url, cl.publishing_date, cl.status
+         cl.publishing_url, cl.publishing_date, cl.status, cl.language
        FROM public.chunks c
        JOIN public.claims cl ON c.claim_id = cl.id
        WHERE c.id = ANY($1::int[])`,
@@ -204,6 +220,7 @@ export class SearchService {
             ? new Date(row.publishing_date).toISOString()
             : null,
           status: row.status,
+          language: row.language,
           bestScore: chunk.rrfScore,
           chunks: [chunk],
         });

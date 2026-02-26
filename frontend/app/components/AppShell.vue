@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 const route = useRoute();
+const { t } = useI18n();
 
 const isMobileNavOpen = ref(false);
 
@@ -43,7 +44,7 @@ watch(
             icon="i-heroicons-bars-3"
             variant="ghost"
             color="neutral"
-            aria-label="Navigation öffnen"
+            :aria-label="t('nav.openAria')"
             @click="isMobileNavOpen = true"
           />
           <NuxtLink to="/" class="flex items-center gap-2 text-default">

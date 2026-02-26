@@ -7,7 +7,22 @@ export default defineNuxtConfig({
 
   srcDir: "app",
 
-  modules: ["@nuxt/ui", "@pinia/nuxt", "@nuxt/eslint"],
+  modules: ["@nuxt/ui", "@pinia/nuxt", "@nuxt/eslint", "@nuxtjs/i18n"],
+
+  i18n: {
+    locales: [
+      { code: "de", file: "de.json", name: "Deutsch" },
+      { code: "en", file: "en.json", name: "English" },
+    ],
+    defaultLocale: "en",
+    langDir: "locales",
+    strategy: "no_prefix",
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: "i18n_redirected",
+      redirectOn: "root",
+    },
+  },
 
   app: {
     head: {

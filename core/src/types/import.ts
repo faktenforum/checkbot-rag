@@ -14,6 +14,8 @@ export interface ImportJobStatus {
   skipped: number;
   errors: number;
   errorMessage?: string;
+   // Optional language configured for this import job (e.g. 'de', 'en').
+  language?: string;
   startedAt?: Date;
   completedAt?: Date;
   canceledAt?: Date;
@@ -41,5 +43,6 @@ export interface ImportJobRow {
   completed_at: Date | null;
   canceled_at: Date | null;
   created_at: Date;
+  language: string | null;
 }
 

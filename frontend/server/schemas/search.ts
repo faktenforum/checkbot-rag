@@ -1,3 +1,4 @@
+import { SEARCH_LANGUAGE_CODES } from "@checkbot/core";
 import { z } from "zod";
 
 export const SearchRequestSchema = z.object({
@@ -6,5 +7,7 @@ export const SearchRequestSchema = z.object({
   categories: z.array(z.string()).optional(),
   ratingLabel: z.string().optional(),
   chunkType: z.enum(["all", "overview", "fact_detail"]).default("all"),
+  // default "de" so omitted language works; "auto" is not supported and returns 400
+  language: z.enum(SEARCH_LANGUAGE_CODES).default("de"),
 });
 

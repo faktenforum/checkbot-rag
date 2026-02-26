@@ -67,7 +67,7 @@ export class ClaimsService {
       db.query<ClaimListRow>(
         `SELECT id, external_id, short_id, status, synopsis, rating_label,
                 rating_summary, categories, publishing_url, publishing_date,
-                created_at, updated_at
+                language, created_at, updated_at
          FROM public.claims ${where}
          ORDER BY publishing_date DESC NULLS LAST, created_at DESC
          LIMIT $${idx} OFFSET $${idx + 1}`,
