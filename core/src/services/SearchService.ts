@@ -201,12 +201,13 @@ export class SearchService {
       publishing_url: string | null;
       publishing_date: string | null;
       status: string;
+      language: string | null;
     }>(
       `SELECT
          c.id, c.claim_id, c.chunk_type, c.fact_index, c.content, c.metadata,
          cl.external_id, cl.short_id, cl.synopsis, cl.rating_label,
          cl.rating_summary, cl.rating_statement, cl.categories,
-         cl.publishing_url, cl.publishing_date, cl.status
+         cl.publishing_url, cl.publishing_date, cl.status, cl.language
        FROM public.chunks c
        JOIN public.claims cl ON c.claim_id = cl.id
        WHERE c.id = ANY($1::int[])`,
@@ -258,6 +259,7 @@ export class SearchService {
             ? new Date(row.publishing_date).toISOString()
             : null,
           status: row.status,
+          language: row.language,
           bestScore: chunk.rrfScore,
           chunks: [chunk],
         });

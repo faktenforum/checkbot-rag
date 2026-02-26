@@ -25,6 +25,7 @@ export interface SearchResultClaim {
   publishingUrl: string | null;
   publishingDate: string | null;
   status: string;
+  language: string | null;
   bestScore: number;
   chunks: SearchResultChunk[];
 }
@@ -76,6 +77,7 @@ export interface ClaimListItem {
   categories: string[];
   publishing_url: string | null;
   publishing_date: string | null;
+  language: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -129,4 +131,9 @@ export interface ImportJobStatus {
   completedAt?: string;
   canceledAt?: string;
   createdAt: string;
+}
+
+export interface ImportRequest {
+  filePath: string;
+  language: string;
 }

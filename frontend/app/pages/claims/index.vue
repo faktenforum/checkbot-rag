@@ -69,6 +69,9 @@
               : "—"
           }}
         </template>
+        <template #language-cell="{ row }">
+          {{ row.original.language ?? "—" }}
+        </template>
         <template #actions-cell="{ row }">
           <UButton
             :to="`/claims/${row.original.short_id}`"
@@ -168,6 +171,7 @@ const columns: ColumnDef<ClaimListItem>[] = [
   { accessorKey: "synopsis", header: "Behauptung" },
   { accessorKey: "rating_label", header: "Urteil", enableSorting: false },
   { accessorKey: "categories", header: "Kategorien", enableSorting: false },
+  { accessorKey: "language", header: "Sprache", enableSorting: false },
   { accessorKey: "publishing_date", header: "Datum" },
   { id: "actions", header: "" },
 ];

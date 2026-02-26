@@ -19,12 +19,12 @@ export class ImportService {
    * Start an import job from a pre-parsed JSON array of claims.
    * Runs in the background; use {@link get} to poll job status.
    */
-  async start(claims: ClaimJson[], source: string): Promise<string> {
+  async start(claims: ClaimJson[], source: string, language: string): Promise<string> {
     const { rows } = await db.query<{ id: string }>(
-      `INSERT INTO public.import_jobs (status, source, total)
-       VALUES ('pending', $1, $2)
+      `INSERT INTO public.import_jobs (status, source, total, language)
+       VALUES ('pending', $1, $2, $3)
        RETURNING id`,
-      [source, claims.length]
+      [source, claims.length, language]
     );
     const firstRow = rows[0];
     if (!firstRow) throw new Error("INSERT import_jobs returned no row");
@@ -38,12 +38,13 @@ export class ImportService {
       processed: 0,
       skipped: 0,
       errors: 0,
+      language,
       createdAt: new Date(),
     };
     this.jobs.set(jobId, job);
 
     // Run asynchronously — do not await
-    this.runImport(jobId, job, claims).catch((err) => {
+    this.runImport(jobId, job, claims, language).catch((err) => {
       console.error(`[ImportService] Job ${jobId} crashed:`, err);
     });
 
@@ -137,7 +138,8 @@ export class ImportService {
   private async runImport(
     jobId: string,
     job: ImportJobStatus,
-    claims: ClaimJson[]
+    claims: ClaimJson[],
+    language: string
   ): Promise<void> {
     // If the job was canceled before it started, mark as canceled and stop.
     if (job.status === "canceled") {
@@ -180,7 +182,7 @@ export class ImportService {
         }
 
         try {
-          const skipped = await this.importClaim(claim);
+          const skipped = await this.importClaim(claim, language);
           if (skipped) {
             job.skipped++;
           } else {
@@ -227,7 +229,7 @@ export class ImportService {
   }
 
   // Import a single claim. Returns true if skipped (no changes).
-  private async importClaim(claim: ClaimJson): Promise<boolean> {
+  private async importClaim(claim: ClaimJson, importLanguage: string): Promise<boolean> {
     // Only import public, checked/published claims with actual content
     if (
       claim.internal ||
@@ -250,6 +252,7 @@ export class ImportService {
       return true; // unchanged
     }
 
+    const claimLanguage = claim.language ?? importLanguage;
     const chunks = chunkingService.chunkClaim(claim);
     const contents = chunks.map((c) => c.content);
     const embeddings = await this.embeddingService.embedBatch(contents);
@@ -267,6 +270,7 @@ export class ImportService {
              rating_statement = $6, rating_summary = $7, rating_label = $8,
              categories = $9, publishing_url = $10, publishing_date = $11,
              internal = $12, version_hash = $13, raw_data = $14,
+             language = $15,
              last_synced_at = NOW(), updated_at = NOW()
            WHERE id = $1`,
           [
@@ -284,6 +288,7 @@ export class ImportService {
             claim.internal,
             versionHash,
             JSON.stringify(claim),
+            claimLanguage,
           ]
         );
         // Delete old chunks before re-inserting
@@ -294,8 +299,9 @@ export class ImportService {
           `INSERT INTO public.claims (
              external_id, short_id, process_id, status, synopsis,
              rating_statement, rating_summary, rating_label, categories,
-             publishing_url, publishing_date, internal, version_hash, raw_data
-           ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+             publishing_url, publishing_date, internal, version_hash, raw_data,
+             language
+           ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
            RETURNING id`,
           [
             claim.id,
@@ -312,6 +318,7 @@ export class ImportService {
             claim.internal,
             versionHash,
             JSON.stringify(claim),
+            claimLanguage,
           ]
         );
         const insertRow = rows[0];
@@ -391,6 +398,7 @@ export class ImportService {
       skipped: row.skipped,
       errors: row.errors,
       errorMessage: row.error_message ?? undefined,
+      language: row.language ?? undefined,
       startedAt: row.started_at ?? undefined,
       completedAt: row.completed_at ?? undefined,
       canceledAt: row.canceled_at ?? undefined,

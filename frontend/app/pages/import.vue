@@ -23,7 +23,21 @@
           placeholder="/data/exports/2026-02-18T19-29-23-254Z_claims_dump-sample.json"
           icon="i-heroicons-document"
         />
-        <div class="flex justify-end">
+
+        <div class="flex flex-wrap items-center gap-4">
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-neutral-600 dark:text-neutral-300">Sprache der Faktenchecks</span>
+            <USelect
+              v-model="language"
+              :options="languageOptions"
+              option-attribute="label"
+              value-attribute="value"
+              class="w-40"
+            />
+          </div>
+
+          <div class="flex-1" />
+
           <UButton
             :loading="importing"
             icon="i-heroicons-play"
@@ -141,10 +155,11 @@
 
 <script setup lang="ts">
 import { useQuery } from "@tanstack/vue-query";
-import type { ImportJobStatus } from "../types/api";
+import type { ImportJobStatus, ImportRequest } from "../types/api";
 
 const { apiFetch } = useApi();
 const filePath = ref("/data/exports/claims_dump.json");
+const language = ref<string>("de");
 const importing = ref(false);
 const importError = ref<string | null>(null);
 const actionLoadingId = ref<string | null>(null);
@@ -170,7 +185,10 @@ async function startImport() {
   try {
     await apiFetch("/api/v1/import", {
       method: "POST",
-      body: JSON.stringify({ filePath: filePath.value }),
+      body: JSON.stringify({
+        filePath: filePath.value,
+        language: language.value,
+      } satisfies ImportRequest),
     });
     await refetch();
   } catch (err) {
@@ -213,4 +231,13 @@ async function deleteJob(jobId: string) {
     currentAction.value = null;
   }
 }
+
+const languageOptions = [
+  { label: "Deutsch", value: "de" },
+  { label: "Englisch", value: "en" },
+  { label: "Französisch", value: "fr" },
+  { label: "Spanisch", value: "es" },
+  { label: "Italienisch", value: "it" },
+  { label: "Portugiesisch", value: "pt" },
+];
 </script>

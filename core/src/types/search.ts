@@ -59,6 +59,7 @@ export interface SearchResultClaim {
   publishingUrl: string | null;
   publishingDate: string | null;
   status: string;
+  language: string | null;
   bestScore: number;
   chunks: SearchResultChunk[];
 }

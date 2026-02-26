@@ -103,4 +103,6 @@ export interface ClaimJson {
   claimCategories: ClaimCategory[];
   origins: ClaimOrigin[];
   facts: ClaimFact[];
+  // Optional language code for the claim (e.g. 'de', 'en'); currently set per import.
+  language?: string;
 }

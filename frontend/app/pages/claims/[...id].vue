@@ -53,6 +53,10 @@
               <UIcon name="i-heroicons-check-circle" class="w-4 h-4" />
               <span>{{ claim.status }}</span>
             </div>
+            <div v-if="claim.language" class="flex items-center gap-1">
+              <UIcon name="i-heroicons-language" class="w-4 h-4" />
+              <span>{{ claim.language }}</span>
+            </div>
           </div>
 
           <div class="flex justify-end">

@@ -93,7 +93,12 @@
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
               <p class="font-medium text-base leading-snug">{{ claim.synopsis }}</p>
-              <p class="text-xs text-neutral-400 mt-1">{{ claim.shortId }}</p>
+              <p class="text-xs text-neutral-400 mt-1">
+                {{ claim.shortId }}
+                <span v-if="claim.language">
+                  • Sprache: {{ claim.language }}
+                </span>
+              </p>
             </div>
             <RatingBadge :label="claim.ratingLabel" />
           </div>

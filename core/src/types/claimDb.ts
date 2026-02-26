@@ -29,6 +29,7 @@ export interface ClaimListRow {
   categories: string[];
   publishing_url: string | null;
   publishing_date: string | null;
+  language: string | null;
   created_at: Date;
   updated_at: Date;
 }
