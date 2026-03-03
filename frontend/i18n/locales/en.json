@@ -23,7 +23,13 @@
     "status": "Status",
     "allRatings": "All ratings",
     "allCategories": "All categories",
-    "allStatuses": "All statuses"
+    "allStatuses": "All statuses",
+    "internal": "Visibility",
+    "allVisibility": "Internal + External",
+    "publicOnly": "External only",
+    "internalOnly": "Internal only",
+    "fts": "Full-text",
+    "vector": "Vector"
   },
   "language": {
     "auto": "Auto (later)",
@@ -69,6 +75,11 @@
   },
   "status": {
     "submitted": "Submitted",
+    "accepted": "Accepted",
+    "observed": "Observed",
+    "stale": "Stale",
+    "spam": "Spam",
+    "rejected": "Rejected",
     "checked": "Checked",
     "published": "Published",
     "imported": "Imported"

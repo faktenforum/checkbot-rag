@@ -1,5 +1,7 @@
 // API response types — must match backend DTOs
-import type { SearchLanguage as CoreSearchLanguage } from "@checkbot/core";
+import type { ClaimStatus, SearchLanguage as CoreSearchLanguage } from "@checkbot/core";
+
+export type { ClaimStatus };
 
 export interface SearchResultChunk {
   chunkId: number;
@@ -25,7 +27,8 @@ export interface SearchResultClaim {
   categories: string[];
   publishingUrl: string | null;
   publishingDate: string | null;
-  status: string;
+  status: ClaimStatus;
+  internal: boolean;
   language: string | null;
   bestScore: number;
   chunks: SearchResultChunk[];
@@ -46,13 +49,17 @@ export interface SearchRequest {
   ratingLabel?: string;
   chunkType?: "all" | "overview" | "fact_detail";
   language?: SearchLanguage;
+  status?: ClaimStatus;
+  internal?: boolean;
+  enableFts?: boolean;
+  enableVec?: boolean;
 }
 
 export interface ClaimListItem {
   id: string;
   external_id: string;
   short_id: string;
-  status: string;
+  status: ClaimStatus;
   synopsis: string | null;
   rating_label: string | null;
   rating_summary: string | null;

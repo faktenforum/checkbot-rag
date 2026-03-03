@@ -1,61 +1,7 @@
-const EXPLICIT_LANGUAGE_CODES = [
-  "de",
-  "en",
-  "fr",
-  "es",
-  "it",
-  "pt",
-  "nl",
-  "da",
-  "fi",
-  "no",
-  "nb",
-  "nn",
-  "ru",
-  "sv",
-  "tr",
-  "ro",
-  "hu",
-  "id",
-] as const;
-
-export const SEARCH_LANGUAGE_CODES = [
-  "auto",
-  ...EXPLICIT_LANGUAGE_CODES,
-] as const;
+import type { ClaimStatus } from "./claim.js";
+import type { SEARCH_LANGUAGE_CODES } from "../constants/search.js";
 
 export type SearchLanguage = (typeof SEARCH_LANGUAGE_CODES)[number];
-
-/** Languages accepted for import (no "auto"). Use for import API schema. */
-export const IMPORT_LANGUAGE_CODES = EXPLICIT_LANGUAGE_CODES;
-
-const FTS_CONFIG_BY_LANGUAGE: Record<string, string> = {
-  de: "german",
-  en: "english",
-  fr: "french",
-  es: "spanish",
-  it: "italian",
-  pt: "portuguese",
-  nl: "dutch",
-  da: "danish",
-  fi: "finnish",
-  no: "norwegian",
-  nb: "norwegian",
-  nn: "norwegian",
-  ru: "russian",
-  sv: "swedish",
-  tr: "turkish",
-  ro: "romanian",
-  hu: "hungarian",
-  id: "indonesian",
-};
-
-export function getFtsConfig(language: string): string {
-  return FTS_CONFIG_BY_LANGUAGE[language] ?? "simple";
-}
-
-export const AUTO_LANGUAGE_ERROR_MESSAGE =
-  "Search language 'auto' is not supported yet; please pass an explicit language code.";
 
 export interface SearchOptions {
   query: string;
@@ -70,6 +16,14 @@ export interface SearchOptions {
    * 'auto' is not supported yet and will be rejected.
    */
   language?: SearchLanguage;
+  /** Filter by claim status. Omit to include all statuses. */
+  status?: ClaimStatus;
+  /** Filter by internal flag. Omit = both; true = internal only; false = external only. */
+  internal?: boolean;
+  /** Enable full-text search. Defaults to true. */
+  enableFts?: boolean;
+  /** Enable vector search. Defaults to true. */
+  enableVec?: boolean;
 }
 
 export interface SearchResultChunk {
@@ -96,7 +50,8 @@ export interface SearchResultClaim {
   categories: string[];
   publishingUrl: string | null;
   publishingDate: string | null;
-  status: string;
+  status: ClaimStatus;
+  internal: boolean;
   language: string | null;
   bestScore: number;
   chunks: SearchResultChunk[];
@@ -108,3 +63,6 @@ export interface SearchResponse {
   claims: SearchResultClaim[];
 }
 
+/** Internal DB row types for search queries */
+export type VecRow = { id: number; vec_score: number; fts_score: null };
+export type FtsRow = { id: number; vec_score: null; fts_score: number };

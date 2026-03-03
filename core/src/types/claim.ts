@@ -1,4 +1,5 @@
 // TypeScript types matching the faktenforum claims JSON export format
+import type { CLAIM_STATUS_VALUES } from "../constants/claim.js";
 
 export interface ClaimFile {
   id: string;
@@ -71,15 +72,7 @@ export interface ClaimCheckworthiness {
   confidence: number;
 }
 
-export type ClaimStatus =
-  | "submitted"
-  | "accepted"
-  | "observed"
-  | "stale"
-  | "spam"
-  | "rejected"
-  | "checked"
-  | "published";
+export type ClaimStatus = (typeof CLAIM_STATUS_VALUES)[number];
 
 export interface ClaimJson {
   id: string;

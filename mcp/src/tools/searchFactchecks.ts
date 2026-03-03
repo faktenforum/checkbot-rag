@@ -27,15 +27,31 @@ export const registerSearchFactchecksTool = (server: McpServer): void => {
           .describe(
             "Optional search language for the query (e.g. 'de', 'en', 'fr'). If omitted, defaults to 'auto'."
           ),
+        status: z.string().optional().describe(
+          "Filter by claim status (e.g. 'checked', 'published'). Omit to include all statuses."
+        ),
+        internal: z.boolean().optional().describe(
+          "Filter by internal flag. Omit = both; true = internal only; false = external only."
+        ),
+        enable_fts: z.boolean().optional().default(true).describe(
+          "Enable full-text search. Defaults to true."
+        ),
+        enable_vec: z.boolean().optional().default(true).describe(
+          "Enable vector search. Defaults to true."
+        ),
       },
     },
     async (args): Promise<McpResult> => {
-      const { query, limit, categories, rating_label, language } = args as {
+      const { query, limit, categories, rating_label, language, status, internal, enable_fts, enable_vec } = args as {
         query: string;
         limit?: number;
         categories?: string[];
         rating_label?: string;
         language?: SearchLanguage;
+        status?: string;
+        internal?: boolean;
+        enable_fts?: boolean;
+        enable_vec?: boolean;
       };
       try {
         const result = await searchService.search({
@@ -45,6 +61,10 @@ export const registerSearchFactchecksTool = (server: McpServer): void => {
           ratingLabel: rating_label,
           chunkType: "all",
           language: language ?? "auto",
+          status: status as Parameters<typeof searchService.search>[0]["status"],
+          internal,
+          enableFts: enable_fts ?? true,
+          enableVec: enable_vec ?? true,
         });
 
         if (result.claims.length === 0) {
