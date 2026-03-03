@@ -5,10 +5,12 @@ import { applyRRF, type RawSearchResult } from "../utils/rrf";
 import {
   AUTO_LANGUAGE_ERROR_MESSAGE,
   getFtsConfig,
-  type SearchOptions,
-  type SearchResponse,
-  type SearchResultClaim,
-  type SearchResultChunk,
+} from "../constants/search.js";
+import type {
+  SearchOptions,
+  SearchResponse,
+  SearchResultClaim,
+  SearchResultChunk,
 } from "../types/search.js";
 
 export class SearchService {
