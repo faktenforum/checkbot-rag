@@ -62,3 +62,7 @@ export interface SearchResponse {
   totalResults: number;
   claims: SearchResultClaim[];
 }
+
+/** Internal DB row types for search queries */
+export type VecRow = { id: number; vec_score: number; fts_score: null };
+export type FtsRow = { id: number; vec_score: null; fts_score: number };

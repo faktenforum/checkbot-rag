@@ -7,11 +7,13 @@ import {
   getFtsConfig,
 } from "../constants/search.js";
 import type {
+  FtsRow,
   SearchOptions,
   SearchResponse,
   SearchResultClaim,
   SearchResultChunk,
-} from "../types/search.js";
+  VecRow,
+} from "../types/index.js";
 
 export class SearchService {
   private readonly embeddingService: EmbeddingService;
@@ -27,7 +29,7 @@ export class SearchService {
       categories,
       ratingLabel,
       chunkType = "all",
-      language = "auto",
+      language = "de",
       status,
       internal,
       enableFts = true,
@@ -114,33 +116,27 @@ export class SearchService {
         NULL::float AS vec_score,
         ts_rank_cd(
           to_tsvector('${ftsConfig}', c.content),
-          plainto_tsquery('${ftsConfig}', $${paramIdx + 1})
+          plainto_tsquery('${ftsConfig}', $${paramIdx})
         ) AS fts_score
       FROM public.chunks c
       JOIN public.claims cl ON c.claim_id = cl.id
-      WHERE to_tsvector('${ftsConfig}', c.content) @@ plainto_tsquery('${ftsConfig}', $${paramIdx + 1})
+      WHERE to_tsvector('${ftsConfig}', c.content) @@ plainto_tsquery('${ftsConfig}', $${paramIdx})
         ${whereClause}
       ORDER BY fts_score DESC
-      LIMIT $${paramIdx}
+      LIMIT $${paramIdx + 1}
     `
       : null;
 
     const queryParams = [...filterParams, fetchLimit];
-    const ftsQueryParams = [...filterParams, fetchLimit, query];
+    const ftsQueryParams = [...filterParams, query, fetchLimit];
 
     const [vecResult, ftsResult] = await Promise.all([
       vecQuery
-        ? db.query<{ id: number; vec_score: number; fts_score: null }>(
-            vecQuery,
-            queryParams
-          )
-        : Promise.resolve({ rows: [] as { id: number; vec_score: number; fts_score: null }[] }),
+        ? db.query<VecRow>(vecQuery, queryParams)
+        : Promise.resolve({ rows: [] as VecRow[] }),
       ftsQuery
-        ? db.query<{ id: number; vec_score: null; fts_score: number }>(
-            ftsQuery,
-            ftsQueryParams
-          )
-        : Promise.resolve({ rows: [] as { id: number; vec_score: null; fts_score: number }[] }),
+        ? db.query<FtsRow>(ftsQuery, ftsQueryParams)
+        : Promise.resolve({ rows: [] as FtsRow[] }),
     ]);
 
     // Merge results: a chunk may appear in both lists
@@ -204,7 +200,6 @@ export class SearchService {
 
     // Build a lookup map for quick access
     const chunkMap = new Map(chunkRows.map((r) => [r.id, r]));
-    const rrfMap = new Map(ranked.map((r) => [r.id, r]));
 
     // Group chunks by claim, keeping highest RRF score per claim
     const claimsMap = new Map<string, SearchResultClaim>();

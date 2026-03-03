@@ -17,11 +17,11 @@
     "languageLabel": "Sprache"
   },
   "filter": {
-    "rating": "Urteil",
+    "rating": "Einordnung",
     "category": "Kategorie",
     "language": "Sprache",
     "status": "Status",
-    "allRatings": "Alle Urteile",
+    "allRatings": "Alle Einordnungen",
     "allCategories": "Alle Kategorien",
     "allStatuses": "Alle Status",
     "internal": "Sichtbarkeit",
@@ -56,7 +56,7 @@
     "importButton": "Importieren",
     "columnId": "ID",
     "columnSynopsis": "Behauptung",
-    "columnRating": "Urteil",
+    "columnRating": "Einordnung",
     "columnCategories": "Kategorien",
     "columnLanguage": "Sprache",
     "columnDate": "Datum",
