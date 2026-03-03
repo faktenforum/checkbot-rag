@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
     setResponseStatus(event, 400);
     return { error: "Validation error", details: z.treeifyError(result.error) };
   }
-  const { query, limit, categories, ratingLabel, chunkType, language } =
+  const { query, limit, categories, ratingLabel, chunkType, language, status, internal, enableFts, enableVec } =
     result.data;
   try {
     return await searchService.search({
@@ -23,6 +23,10 @@ export default defineEventHandler(async (event) => {
       ratingLabel,
       chunkType,
       language,
+      status,
+      internal,
+      enableFts,
+      enableVec,
     });
   } catch (err) {
     const message = (err as Error).message;

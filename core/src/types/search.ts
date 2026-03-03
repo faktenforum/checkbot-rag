@@ -1,3 +1,5 @@
+import type { ClaimStatus } from "./claim.js";
+
 const EXPLICIT_LANGUAGE_CODES = [
   "de",
   "en",
@@ -70,6 +72,14 @@ export interface SearchOptions {
    * 'auto' is not supported yet and will be rejected.
    */
   language?: SearchLanguage;
+  /** Filter by claim status. Omit to include all statuses. */
+  status?: ClaimStatus;
+  /** Filter by internal flag. Omit = both; true = internal only; false = external only. */
+  internal?: boolean;
+  /** Enable full-text search. Defaults to true. */
+  enableFts?: boolean;
+  /** Enable vector search. Defaults to true. */
+  enableVec?: boolean;
 }
 
 export interface SearchResultChunk {
@@ -96,7 +106,8 @@ export interface SearchResultClaim {
   categories: string[];
   publishingUrl: string | null;
   publishingDate: string | null;
-  status: string;
+  status: ClaimStatus;
+  internal: boolean;
   language: string | null;
   bestScore: number;
   chunks: SearchResultChunk[];

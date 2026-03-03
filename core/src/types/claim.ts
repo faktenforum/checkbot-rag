@@ -71,15 +71,18 @@ export interface ClaimCheckworthiness {
   confidence: number;
 }
 
-export type ClaimStatus =
-  | "submitted"
-  | "accepted"
-  | "observed"
-  | "stale"
-  | "spam"
-  | "rejected"
-  | "checked"
-  | "published";
+export const CLAIM_STATUS_VALUES = [
+  "submitted",
+  "accepted",
+  "observed",
+  "stale",
+  "spam",
+  "rejected",
+  "checked",
+  "published",
+] as const;
+
+export type ClaimStatus = (typeof CLAIM_STATUS_VALUES)[number];
 
 export interface ClaimJson {
   id: string;

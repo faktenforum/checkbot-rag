@@ -1,3 +1,5 @@
+import type { ClaimStatus } from "./claim.js";
+
 export interface ClaimChunk {
   id: number;
   chunk_type: string;
@@ -15,14 +17,14 @@ export interface ListClaimsFilters {
   limit: number;
   ratingLabel?: string;
   category?: string;
-  status?: string;
+  status?: ClaimStatus;
 }
 
 export interface ClaimListRow {
   id: string;
   external_id: string;
   short_id: string;
-  status: string;
+  status: ClaimStatus;
   synopsis: string | null;
   rating_label: string | null;
   rating_summary: string | null;

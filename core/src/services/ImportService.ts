@@ -230,12 +230,8 @@ export class ImportService {
 
   // Import a single claim. Returns true if skipped (no changes).
   private async importClaim(claim: ClaimJson, importLanguage: string): Promise<boolean> {
-    // Only import public, checked/published claims with actual content
-    if (
-      claim.internal ||
-      !["checked", "published"].includes(claim.status) ||
-      !claim.synopsis
-    ) {
+    // Skip claims without a synopsis - there is nothing meaningful to index
+    if (!claim.synopsis) {
       return true;
     }
 

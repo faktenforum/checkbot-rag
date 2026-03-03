@@ -26,20 +26,24 @@ export class SearchService {
       ratingLabel,
       chunkType = "all",
       language = "auto",
+      status,
+      internal,
+      enableFts = true,
+      enableVec = true,
     } = options;
 
     if (language === "auto") {
       throw new Error(AUTO_LANGUAGE_ERROR_MESSAGE);
     }
 
+    if (!enableFts && !enableVec) {
+      return { query, totalResults: 0, claims: [] };
+    }
+
     const { weightVec, weightFts, rrfK, overfetchFactor } = config.search;
 
     // Overfetch to improve RRF recall: fetch more candidates than needed
     const fetchLimit = limit * overfetchFactor;
-
-    // Embed the query for vector search
-    const queryEmbedding = await this.embeddingService.embedOne(query);
-    const vectorSql = EmbeddingService.toSql(queryEmbedding);
 
     // Build metadata filter conditions
     const filterConditions: string[] = [];
@@ -63,13 +67,31 @@ export class SearchService {
       filterParams.push(ratingLabel);
     }
 
+    if (status !== undefined) {
+      filterConditions.push(`cl.status = $${paramIdx++}`);
+      filterParams.push(status);
+    }
+
+    if (internal !== undefined) {
+      filterConditions.push(`cl.internal = $${paramIdx++}`);
+      filterParams.push(internal);
+    }
+
     const whereClause =
       filterConditions.length > 0
         ? `AND ${filterConditions.join(" AND ")}`
         : "";
 
-    // Vector search: cosine distance with pgvector (public.chunks has embedding column)
-    const vecQuery = `
+    // Embed the query only when vector search is needed
+    const vectorSql = enableVec
+      ? EmbeddingService.toSql(await this.embeddingService.embedOne(query))
+      : null;
+
+    // FTS: tsvector computed on the fly per language (no stored fts_vector column).
+    const ftsConfig = getFtsConfig(language);
+
+    const vecQuery = vectorSql
+      ? `
       SELECT
         c.id,
         1 - (c.embedding <=> '${vectorSql}'::vector) AS vec_score,
@@ -80,12 +102,11 @@ export class SearchService {
         ${whereClause}
       ORDER BY c.embedding <=> '${vectorSql}'::vector
       LIMIT $${paramIdx}
-    `;
+    `
+      : null;
 
-    // FTS: tsvector computed on the fly per language (no stored fts_vector column).
-    const ftsConfig = getFtsConfig(language);
-
-    const ftsQuery = `
+    const ftsQuery = enableFts
+      ? `
       SELECT
         c.id,
         NULL::float AS vec_score,
@@ -95,26 +116,29 @@ export class SearchService {
         ) AS fts_score
       FROM public.chunks c
       JOIN public.claims cl ON c.claim_id = cl.id
-      WHERE to_tsvector('${ftsConfig}', c.content) @@ plainto_tsquery('${ftsConfig}', $${
-        paramIdx + 1
-      })
+      WHERE to_tsvector('${ftsConfig}', c.content) @@ plainto_tsquery('${ftsConfig}', $${paramIdx + 1})
         ${whereClause}
       ORDER BY fts_score DESC
       LIMIT $${paramIdx}
-    `;
+    `
+      : null;
 
     const queryParams = [...filterParams, fetchLimit];
     const ftsQueryParams = [...filterParams, fetchLimit, query];
 
     const [vecResult, ftsResult] = await Promise.all([
-      db.query<{ id: number; vec_score: number; fts_score: null }>(
-        vecQuery,
-        queryParams
-      ),
-      db.query<{ id: number; vec_score: null; fts_score: number }>(
-        ftsQuery,
-        ftsQueryParams
-      ),
+      vecQuery
+        ? db.query<{ id: number; vec_score: number; fts_score: null }>(
+            vecQuery,
+            queryParams
+          )
+        : Promise.resolve({ rows: [] as { id: number; vec_score: number; fts_score: null }[] }),
+      ftsQuery
+        ? db.query<{ id: number; vec_score: null; fts_score: number }>(
+            ftsQuery,
+            ftsQueryParams
+          )
+        : Promise.resolve({ rows: [] as { id: number; vec_score: null; fts_score: number }[] }),
     ]);
 
     // Merge results: a chunk may appear in both lists
@@ -162,13 +186,14 @@ export class SearchService {
       publishing_url: string | null;
       publishing_date: string | null;
       status: string;
+      internal: boolean;
       language: string | null;
     }>(
       `SELECT
          c.id, c.claim_id, c.chunk_type, c.fact_index, c.content, c.metadata,
          cl.external_id, cl.short_id, cl.synopsis, cl.rating_label,
          cl.rating_summary, cl.rating_statement, cl.categories,
-         cl.publishing_url, cl.publishing_date, cl.status, cl.language
+         cl.publishing_url, cl.publishing_date, cl.status, cl.internal, cl.language
        FROM public.chunks c
        JOIN public.claims cl ON c.claim_id = cl.id
        WHERE c.id = ANY($1::int[])`,
@@ -219,7 +244,8 @@ export class SearchService {
           publishingDate: row.publishing_date
             ? new Date(row.publishing_date).toISOString()
             : null,
-          status: row.status,
+          status: row.status as SearchResultClaim["status"], // DB returns string; ClaimStatus is a string union
+          internal: row.internal,
           language: row.language,
           bestScore: chunk.rrfScore,
           chunks: [chunk],

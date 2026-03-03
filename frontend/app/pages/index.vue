@@ -34,7 +34,7 @@
           </UButton>
         </div>
 
-        <!-- Filters row -->
+        <!-- Filters row 1: rating, category, limit, language -->
         <div class="flex flex-wrap gap-3 items-center">
           <USelect
             v-model="selectedRating"
@@ -63,6 +63,31 @@
             size="sm"
             class="w-40"
           />
+        </div>
+
+        <!-- Filters row 2: status, visibility, FTS/vector toggles -->
+        <div class="flex flex-wrap gap-3 items-center">
+          <USelect
+            v-model="selectedStatus"
+            :items="statusOptions"
+            :placeholder="t('filter.status')"
+            size="sm"
+            class="w-44"
+          />
+          <USelect
+            v-model="selectedInternal"
+            :items="internalOptions"
+            size="sm"
+            class="w-44"
+          />
+          <div class="flex items-center gap-2 px-1">
+            <USwitch v-model="enableFts" size="sm" />
+            <span class="text-sm text-neutral-600 dark:text-neutral-400">{{ t('filter.fts') }}</span>
+          </div>
+          <div class="flex items-center gap-2 px-1">
+            <USwitch v-model="enableVec" size="sm" />
+            <span class="text-sm text-neutral-600 dark:text-neutral-400">{{ t('filter.vector') }}</span>
+          </div>
         </div>
       </div>
     </UCard>
@@ -96,6 +121,12 @@
                 {{ claim.shortId }}
                 <span v-if="claim.language">
                   • {{ t('search.languageLabel') }}: {{ claim.language }}
+                </span>
+                <span>
+                  • {{ t(`status.${claim.status}`, claim.status) }}
+                </span>
+                <span v-if="claim.internal" class="text-amber-500">
+                  • {{ t('filter.internalOnly') }}
                 </span>
               </p>
             </div>
@@ -158,18 +189,25 @@
 </template>
 
 <script setup lang="ts">
-import type { SearchResultClaim } from "../types/api";
+import type { ClaimStatus, SearchResultClaim } from "../types/api";
 
 /** Sentinel for "no filter" – must not be empty string (USelect reserves "" for placeholder). */
 const ALL_FILTER = "__all__";
 
+/** Sentinel values for the internal/visibility select. */
+const INTERNAL_ALL = "__all__";
+const INTERNAL_PUBLIC = "__public__";
+const INTERNAL_ONLY = "__internal__";
+
 const { t } = useI18n();
-const { results, pending, error, language, search } = useSearch();
+const { results, pending, error, language, enableFts, enableVec, search } = useSearch();
 const { data: stats } = useStats();
 
 const query = ref("");
 const selectedRating = ref<string>(ALL_FILTER);
 const selectedCategory = ref<string>(ALL_FILTER);
+const selectedStatus = ref<string>(ALL_FILTER);
+const selectedInternal = ref<string>(INTERNAL_ALL);
 const limit = ref(10);
 
 const ratingOptions = computed(() => [
@@ -186,6 +224,20 @@ const categoryOptions = computed(() => [
     label: `${c.category} (${c.count})`,
     value: c.category,
   })) ?? []),
+]);
+
+const statusOptions = computed(() => [
+  { label: t("filter.allStatuses"), value: ALL_FILTER },
+  ...Object.entries(stats.value?.claims.byStatus ?? {}).map(([s, count]) => ({
+    label: `${t(`status.${s}`, s)} (${count})`,
+    value: s,
+  })),
+]);
+
+const internalOptions = computed(() => [
+  { label: t("filter.allVisibility"), value: INTERNAL_ALL },
+  { label: t("filter.publicOnly"), value: INTERNAL_PUBLIC },
+  { label: t("filter.internalOnly"), value: INTERNAL_ONLY },
 ]);
 
 const limitOptions = computed(() => [
@@ -223,6 +275,12 @@ function bestFactChunk(claim: SearchResultClaim) {
     .sort((a, b) => b.rrfScore - a.rrfScore)[0];
 }
 
+function resolveInternal(val: string): boolean | undefined {
+  if (val === INTERNAL_PUBLIC) return false;
+  if (val === INTERNAL_ONLY) return true;
+  return undefined;
+}
+
 async function doSearch() {
   await search({
     query: query.value,
@@ -235,6 +293,11 @@ async function doSearch() {
       selectedRating.value && selectedRating.value !== ALL_FILTER
         ? selectedRating.value
         : undefined,
+    status:
+      selectedStatus.value && selectedStatus.value !== ALL_FILTER
+        ? selectedStatus.value as ClaimStatus
+        : undefined,
+    internal: resolveInternal(selectedInternal.value),
   });
 }
 </script>

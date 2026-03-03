@@ -23,7 +23,13 @@
     "status": "Status",
     "allRatings": "Alle Urteile",
     "allCategories": "Alle Kategorien",
-    "allStatuses": "Alle Status"
+    "allStatuses": "Alle Status",
+    "internal": "Sichtbarkeit",
+    "allVisibility": "Intern + Extern",
+    "publicOnly": "Nur extern",
+    "internalOnly": "Nur intern",
+    "fts": "Volltext",
+    "vector": "Vektor"
   },
   "language": {
     "auto": "Auto (später)",
@@ -69,6 +75,11 @@
   },
   "status": {
     "submitted": "Eingereicht",
+    "accepted": "Angenommen",
+    "observed": "Beobachtet",
+    "stale": "Veraltet",
+    "spam": "Spam",
+    "rejected": "Abgelehnt",
     "checked": "Geprüft",
     "published": "Veröffentlicht",
     "imported": "Importiert"
