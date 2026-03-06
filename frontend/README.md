@@ -72,6 +72,16 @@ Nuxt configuration lives in `nuxt.config.ts`. Relevant points:
 
 The server itself reads all `CHECKBOT_RAG_*` environment variables through `@checkbot/core` (see `core/README.md`).
 
+### REST API authentication
+
+- Optional: If `CHECKBOT_RAG_API_KEY` is set, the middleware in `server/middleware/04.api-auth.ts` requires:
+
+    ```http
+    Authorization: Bearer <CHECKBOT_RAG_API_KEY>
+    ```
+
+  All `/api/**` routes are protected. `/health` remains unauthenticated.
+
 ### MCP endpoint
 
 The Nitro route `server/routes/mcp.ts` forwards requests to `@checkbot/mcp`:

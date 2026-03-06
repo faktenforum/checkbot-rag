@@ -28,6 +28,7 @@ You can run Checkbot RAG without the full LibreChat stack.
    Copy `.env.example` to `.env` in the repo root. At minimum set:
    - `CHECKBOT_RAG_EMBEDDING_API_KEY` - embedding provider API key
    - `CHECKBOT_RAG_POSTGRES_PASSWORD` - database password
+   - `CHECKBOT_RAG_API_KEY` - optional, required if you want `/api/**` protected by `Authorization: Bearer <key>`
    - `CHECKBOT_RAG_MCP_API_KEY` - optional, required if you want `/mcp` protected by `Authorization: Bearer <key>`
 
 2. **Start services**
@@ -42,7 +43,7 @@ You can run Checkbot RAG without the full LibreChat stack.
 
 - **Admin UI**: `http://localhost:3020` (search, claims, import, stats)
 - **Health**: `GET http://localhost:3020/health`
-- **REST API** (served by Nuxt Nitro, backed by `@checkbot/core`): `/api/v1/search`, `/api/v1/claims`, `/api/v1/import`, `/api/v1/stats`, `/api/v1/categories`, `/api/v1/rating-labels`
+- **REST API** (served by Nuxt Nitro, backed by `@checkbot/core`): `/api/v1/search`, `/api/v1/claims`, `/api/v1/import`, `/api/v1/stats`, `/api/v1/categories`, `/api/v1/rating-labels` (optional `CHECKBOT_RAG_API_KEY`)
 - **MCP endpoint**: `POST http://localhost:3020/mcp` (HTTP/SSE, optional `CHECKBOT_RAG_MCP_API_KEY`)
 
 For full request/response shapes, environment variables, and internal search design, see the package READMEs ([core/README.md](core/README.md), [frontend/README.md](frontend/README.md), [mcp/README.md](mcp/README.md)).
