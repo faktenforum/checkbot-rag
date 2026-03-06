@@ -38,6 +38,7 @@ Key variables:
 | `CHECKBOT_RAG_SEARCH_OVERFETCH` | `3` | Overfetch factor for candidates before RRF |
 | `CHECKBOT_RAG_MAX_CHUNK_CHARS` | `6000` | Max characters per chunk before splitting |
 | `CHECKBOT_RAG_STATIC_DIR` | optional | Path to static files (used by the HTTP host) |
+| `CHECKBOT_RAG_API_KEY` | optional | API key required for `/api/**` if set |
 | `CHECKBOT_RAG_MCP_API_KEY` | optional | API key required for `/mcp` if set |
 
 See `.env.example` at the repo root for a complete list and recommended defaults.
