@@ -43,6 +43,12 @@ const configSchema = z.object({
 
   // Optional API key for MCP endpoint. If set, requests to /mcp must send Authorization: Bearer <key>
   mcpApiKey: z.string().optional(),
+
+  // Faktenforum integration: URL and API key for pulling claims via the export endpoint
+  faktenforum: z.object({
+    url: z.string().url().optional(),
+    apiKey: z.string().optional(),
+  }),
 });
 
 function loadConfig() {
@@ -80,6 +86,11 @@ function loadConfig() {
     staticDir: process.env.CHECKBOT_RAG_STATIC_DIR,
     apiKey: process.env.CHECKBOT_RAG_API_KEY?.trim() || undefined,
     mcpApiKey: process.env.CHECKBOT_RAG_MCP_API_KEY?.trim() || undefined,
+
+    faktenforum: {
+      url: process.env.CHECKBOT_RAG_FAKTENFORUM_URL?.trim() || undefined,
+      apiKey: process.env.CHECKBOT_RAG_FAKTENFORUM_API_KEY?.trim() || undefined,
+    },
   };
 
   const result = configSchema.safeParse(raw);
