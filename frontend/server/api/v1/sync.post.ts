@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
     "Content-Type": "application/json",
   };
   if (faktenforum_api_key) {
-    headers["Authorization"] = `Bearer ${faktenforum_api_key}`;
+    headers["x-api-key"] = faktenforum_api_key;
   }
 
   let claims: ClaimJson[];
