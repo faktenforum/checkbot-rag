@@ -45,6 +45,7 @@ CREATE TABLE public.chunks (
     content text NOT NULL,
     metadata jsonb DEFAULT '{}'::jsonb NOT NULL,
     created_at timestamp with time zone DEFAULT now(),
+    embedding public.vector(1536),
     CONSTRAINT chunks_chunk_type_check CHECK ((chunk_type = ANY (ARRAY['claim_overview'::text, 'fact_detail'::text])))
 );
 
@@ -193,6 +194,13 @@ CREATE INDEX chunks_chunk_type_idx ON public.chunks USING btree (chunk_type);
 --
 
 CREATE INDEX chunks_claim_id_idx ON public.chunks USING btree (claim_id);
+
+
+--
+-- Name: chunks_embedding_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX chunks_embedding_idx ON public.chunks USING hnsw (embedding public.vector_cosine_ops) WITH (m='16', ef_construction='64');
 
 
 --
