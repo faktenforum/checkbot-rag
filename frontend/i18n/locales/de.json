@@ -84,6 +84,11 @@
     "published": "Veröffentlicht",
     "imported": "Importiert"
   },
+  "sync": {
+    "cardTitle": "Faktenforum Synchronisierung",
+    "description": "Alle Claims von der verbundenen Faktenforum-Instanz abrufen und in den RAG-Index übernehmen. Der Lauf ist idempotent – bereits indexierte Claims werden übersprungen.",
+    "startButton": "Jetzt synchronisieren"
+  },
   "import": {
     "title": "Import",
     "cardTitle": "Faktenchecks importieren",
