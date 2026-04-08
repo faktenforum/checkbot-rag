@@ -28,18 +28,22 @@ export default defineEventHandler(async (event) => {
 
   let claims: ClaimJson[];
   try {
-    const response = await fetch(`${faktenforum_url}/api/v1/export/claims`, { headers });
+    const response = await fetch(`${faktenforum_url}/api/v1/export/claims`, {
+      headers,
+      signal: AbortSignal.timeout(30_000),
+    });
     if (!response.ok) {
+      const details = await response.text().catch(() => "");
+      console.error(`[sync] Faktenforum export error ${response.status}:`, details);
       setResponseStatus(event, 502);
-      return {
-        error: `Faktenforum export returned ${response.status}`,
-        details: await response.text().catch(() => ""),
-      };
+      return { error: `Faktenforum export returned ${response.status}` };
     }
     claims = (await response.json()) as ClaimJson[];
   } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[sync] Failed to reach Faktenforum:", message);
     setResponseStatus(event, 502);
-    return { error: `Failed to reach Faktenforum: ${(err as Error).message}` };
+    return { error: "Failed to reach Faktenforum" };
   }
 
   if (!Array.isArray(claims) || claims.length === 0) {
