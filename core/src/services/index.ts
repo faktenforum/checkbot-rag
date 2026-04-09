@@ -9,3 +9,4 @@ export * from "./AuditLogService.js";
 export * from "./UserService.js";
 export * from "./ApiKeyService.js";
 export * from "./RateLimiterService.js";
+export * from "./AuthService.js";
