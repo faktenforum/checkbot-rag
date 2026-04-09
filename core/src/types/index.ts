@@ -5,3 +5,4 @@ export type * from "./embedding.js";
 export type * from "./chunking.js";
 export type * from "./claimDb.js";
 export type * from "./claimStats.js";
+export type * from "./auth.js";

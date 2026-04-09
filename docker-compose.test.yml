@@ -1,0 +1,44 @@
+# Ephemeral Postgres instance for running the test suite against real
+# migrations. Usage:
+#
+#   docker compose -f docker-compose.test.yml up -d
+#   bun test
+#   docker compose -f docker-compose.test.yml down -v
+#
+# The DB listens on 127.0.0.1:55432. Tests connect via
+# CHECKBOT_RAG_TEST_POSTGRES_* env vars (see core/src/services/__tests__/helpers/db.ts).
+
+services:
+  checkbot-rag-test-db:
+    image: pgvector/pgvector:0.8.1-pg18-trixie
+    restart: "no"
+    environment:
+      POSTGRES_DB: checkbot_rag_test
+      POSTGRES_USER: checkbot_rag_test
+      POSTGRES_PASSWORD: checkbot_rag_test
+    ports:
+      - "127.0.0.1:55432:5432"
+    tmpfs:
+      # Keep data in RAM so tests are fast and each `down -v` is truly clean.
+      # pg18's official image uses /var/lib/postgresql (not /data subdir).
+      - /var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U checkbot_rag_test -d checkbot_rag_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+
+  checkbot-rag-test-dbmate:
+    image: ghcr.io/amacneil/dbmate:latest
+    environment:
+      DATABASE_URL: "postgres://checkbot_rag_test:checkbot_rag_test@checkbot-rag-test-db:5432/checkbot_rag_test?sslmode=disable"
+      DBMATE_MIGRATIONS_TABLE: checkbot_schema_migrations
+      DBMATE_NO_DUMP_SCHEMA: "1"
+      DBMATE_WAIT: "1"
+    volumes:
+      - ./core/db:/db
+    depends_on:
+      checkbot-rag-test-db:
+        condition: service_healthy
+    command: ["up"]
