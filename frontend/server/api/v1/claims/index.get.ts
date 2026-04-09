@@ -2,6 +2,7 @@ import { claimsService } from "@checkbot/core";
 import { GetClaimsQuerySchema } from "../../../schemas/claims";
 
 export default defineEventHandler(async (event) => {
+  assertPermission(event, "claims:read");
   const query = getQuery(event);
   const result = GetClaimsQuerySchema.safeParse(query);
   if (!result.success) {

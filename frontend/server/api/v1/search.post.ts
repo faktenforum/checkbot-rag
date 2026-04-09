@@ -7,6 +7,7 @@ import { z } from "zod";
 import { SearchRequestSchema } from "../../schemas/search";
 
 export default defineEventHandler(async (event) => {
+  assertPermission(event, "search");
   const body = await readBody(event);
   const result = SearchRequestSchema.safeParse(body);
   if (!result.success) {

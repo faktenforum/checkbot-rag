@@ -2,6 +2,7 @@ import { claimsService } from "@checkbot/core";
 import { defineEventHandler, getRouterParam, setResponseStatus } from "h3";
 
 export default defineEventHandler(async (event) => {
+  assertPermission(event, "claims:read");
   const id = getRouterParam(event, "id");
   if (!id) {
     setResponseStatus(event, 400);
