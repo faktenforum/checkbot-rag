@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 const route = useRoute();
 const { t, locale, setLocale } = useI18n();
+const { hasPermission } = useAuth();
 
 type NavItem = {
   label: string;
@@ -28,6 +29,32 @@ const items = computed<NavItem[]>(() => [
     to: "/import",
     isActive: (path) => path === "/import",
   },
+  ...(hasPermission("users:read")
+    ? [
+        {
+          label: t("nav.users"),
+          icon: "i-heroicons-users",
+          to: "/users",
+          isActive: (path: string) => path.startsWith("/users"),
+        },
+      ]
+    : []),
+  {
+    label: t("nav.apiKeys"),
+    icon: "i-heroicons-key",
+    to: "/api-keys",
+    isActive: (path: string) => path.startsWith("/api-keys"),
+  },
+  ...(hasPermission("admin")
+    ? [
+        {
+          label: t("nav.audit"),
+          icon: "i-heroicons-clipboard-document-list",
+          to: "/audit",
+          isActive: (path: string) => path === "/audit",
+        },
+      ]
+    : []),
 ]);
 
 const isActive = (item: NavItem) => (item.isActive ? item.isActive(route.path) : route.path === item.to);
