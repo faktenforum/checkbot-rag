@@ -7,8 +7,14 @@ import {
 } from "h3";
 
 const PROTECTED_PREFIXES = ["/api/", "/mcp"];
+// Paths that handle their own auth (login creates the session)
+const PUBLIC_PATHS = new Set([
+  "/api/v1/auth/login",
+  "/api/v1/auth/logout",
+]);
 
 function isProtectedPath(path: string): boolean {
+  if (PUBLIC_PATHS.has(path)) return false;
   return PROTECTED_PREFIXES.some((p) => path === p || path.startsWith(p));
 }
 
