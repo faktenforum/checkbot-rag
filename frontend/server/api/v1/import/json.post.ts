@@ -3,6 +3,7 @@ import type { ClaimJson } from "@checkbot/core";
 import { ImportFromJsonSchema } from "../../../schemas/import";
 
 export default defineEventHandler(async (event) => {
+  assertPermission(event, "import");
   const body = await readBody(event);
   const result = ImportFromJsonSchema.safeParse(body);
   if (!result.success) {

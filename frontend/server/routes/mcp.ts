@@ -1,6 +1,8 @@
 import { handleMcpRequest } from "@checkbot/mcp";
 
 export default defineEventHandler(async (event) => {
+  assertPermission(event, "mcp:use");
+
   const node = event.node;
   if (!node?.req || !node?.res) {
     setResponseStatus(event, 500);

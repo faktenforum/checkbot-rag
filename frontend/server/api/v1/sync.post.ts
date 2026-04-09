@@ -8,6 +8,7 @@ const SyncSchema = z.object({
 });
 
 export default defineEventHandler(async (event) => {
+  assertPermission(event, "import");
   const { url: faktenforum_url, apiKey: faktenforum_api_key } = config.faktenforum;
 
   if (!faktenforum_url) {
