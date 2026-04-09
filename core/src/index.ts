@@ -3,3 +3,4 @@ export * from "./constants/index.js";
 export * from "./services/index.js";
 export type * from "./types/index.js";
 export * from "./utils/index.js";
+export * from "./auth/index.js";
