@@ -1,25 +1,46 @@
-import { config } from "@checkbot/core";
-import { defineEventHandler, getHeader, setResponseStatus, setResponseHeader } from "h3";
+import { apiKeyService } from "@checkbot/core";
+import {
+  defineEventHandler,
+  getHeader,
+  setResponseStatus,
+  setResponseHeader,
+} from "h3";
 
-export default defineEventHandler((event) => {
-  if (!event.path.startsWith("/api/")) return;
-  const expected = config.apiKey;
-  if (!expected) return;
+const PROTECTED_PREFIXES = ["/api/", "/mcp"];
 
-  // Allow same-origin browser requests so the built-in admin UI keeps working
-  // when an API key is configured. `Sec-Fetch-Site` is a forbidden request
-  // header (browsers set it, JS cannot override it), so this only matches
-  // fetches initiated by pages served from this same origin — i.e. our own
-  // admin UI. External integrations (curl, other services) either omit the
-  // header or send "none"/"cross-site" and must present a Bearer token.
-  const secFetchSite = getHeader(event, "sec-fetch-site");
-  if (secFetchSite === "same-origin") return;
+function isProtectedPath(path: string): boolean {
+  return PROTECTED_PREFIXES.some((p) => path === p || path.startsWith(p));
+}
 
+export default defineEventHandler(async (event) => {
+  if (!isProtectedPath(event.path)) return;
+
+  // Session middleware already resolved a cookie-based user
+  if (event.context.sessionUser) {
+    event.context.user = event.context.sessionUser;
+    return;
+  }
+
+  // No Bearer token and no session → 401
   const auth = getHeader(event, "authorization");
-  const token = auth?.startsWith("Bearer ") ? auth.slice(7) : "";
-  if (token !== expected) {
+  if (!auth?.startsWith("Bearer ")) {
     setResponseStatus(event, 401);
     setResponseHeader(event, "Content-Type", "application/json");
     return { error: "Unauthorized" };
   }
+
+  const rawKey = auth.slice(7).trim();
+  const authenticated = await apiKeyService.validate(rawKey);
+  if (!authenticated) {
+    setResponseStatus(event, 401);
+    setResponseHeader(event, "Content-Type", "application/json");
+    return { error: "Unauthorized" };
+  }
+
+  event.context.apiKey = authenticated.key;
+  event.context.user = authenticated.user;
+  event.context.effectivePermissions = authenticated.effectivePermissions;
+
+  // Fire-and-forget - do not await
+  apiKeyService.touchLastUsed(authenticated.key.id);
 });
