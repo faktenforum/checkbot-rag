@@ -84,7 +84,9 @@ export class AuthService {
       throw new Error("Invalid email or password");
     }
 
-    const user = withHash as User;
+    // Strip the password hash - never expose it outside the service
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { passwordHash: _ph, ...user } = withHash;
     const rawToken = generateSessionToken();
     const tokenHash = hashSessionToken(rawToken, this.secret);
 
