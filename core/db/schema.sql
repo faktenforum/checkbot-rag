@@ -34,6 +34,63 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
+-- Name: api_keys; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.api_keys (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    name text NOT NULL,
+    description text,
+    key_hash text NOT NULL,
+    key_prefix text NOT NULL,
+    permissions text[] DEFAULT '{}'::text[] NOT NULL,
+    rate_limit_points integer,
+    rate_limit_duration_sec integer DEFAULT 60 NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    expires_at timestamp with time zone,
+    last_used_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: audit_log; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.audit_log (
+    id bigint NOT NULL,
+    user_id uuid,
+    action text NOT NULL,
+    target_type text,
+    target_id uuid,
+    metadata jsonb DEFAULT '{}'::jsonb NOT NULL,
+    ip_address text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: audit_log_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.audit_log_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: audit_log_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.audit_log_id_seq OWNED BY public.audit_log.id;
+
+
+--
 -- Name: chunks; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -128,10 +185,83 @@ CREATE TABLE public.schema_migrations (
 
 
 --
+-- Name: sessions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.sessions (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    session_token_hash text NOT NULL,
+    expires_at timestamp with time zone NOT NULL,
+    user_agent text,
+    ip_address text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    last_activity_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: users; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.users (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_type text NOT NULL,
+    name text NOT NULL,
+    email text,
+    password_hash text,
+    permissions text[] DEFAULT '{}'::text[] NOT NULL,
+    source text DEFAULT 'manual'::text NOT NULL,
+    env_var_name text,
+    active boolean DEFAULT true NOT NULL,
+    last_login_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    created_by uuid,
+    CONSTRAINT users_human_requires_email CHECK (((user_type = 'service'::text) OR (email IS NOT NULL))),
+    CONSTRAINT users_human_requires_password CHECK (((user_type = 'service'::text) OR (password_hash IS NOT NULL))),
+    CONSTRAINT users_service_no_password CHECK (((user_type = 'human'::text) OR (password_hash IS NULL))),
+    CONSTRAINT users_source_check CHECK ((source = ANY (ARRAY['manual'::text, 'env_bootstrap'::text]))),
+    CONSTRAINT users_user_type_check CHECK ((user_type = ANY (ARRAY['human'::text, 'service'::text])))
+);
+
+
+--
+-- Name: audit_log id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.audit_log ALTER COLUMN id SET DEFAULT nextval('public.audit_log_id_seq'::regclass);
+
+
+--
 -- Name: chunks id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.chunks ALTER COLUMN id SET DEFAULT nextval('public.chunks_id_seq'::regclass);
+
+
+--
+-- Name: api_keys api_keys_key_hash_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.api_keys
+    ADD CONSTRAINT api_keys_key_hash_key UNIQUE (key_hash);
+
+
+--
+-- Name: api_keys api_keys_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.api_keys
+    ADD CONSTRAINT api_keys_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: audit_log audit_log_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.audit_log
+    ADD CONSTRAINT audit_log_pkey PRIMARY KEY (id);
 
 
 --
@@ -180,6 +310,88 @@ ALTER TABLE ONLY public.import_jobs
 
 ALTER TABLE ONLY public.schema_migrations
     ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
+
+
+--
+-- Name: sessions sessions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sessions
+    ADD CONSTRAINT sessions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: sessions sessions_session_token_hash_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sessions
+    ADD CONSTRAINT sessions_session_token_hash_key UNIQUE (session_token_hash);
+
+
+--
+-- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_email_key UNIQUE (email);
+
+
+--
+-- Name: users users_env_var_name_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_env_var_name_key UNIQUE (env_var_name);
+
+
+--
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: api_keys_active_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX api_keys_active_idx ON public.api_keys USING btree (active) WHERE (active = true);
+
+
+--
+-- Name: api_keys_hash_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX api_keys_hash_idx ON public.api_keys USING btree (key_hash);
+
+
+--
+-- Name: api_keys_user_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX api_keys_user_idx ON public.api_keys USING btree (user_id);
+
+
+--
+-- Name: audit_log_action_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX audit_log_action_idx ON public.audit_log USING btree (action);
+
+
+--
+-- Name: audit_log_created_at_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX audit_log_created_at_idx ON public.audit_log USING btree (created_at DESC);
+
+
+--
+-- Name: audit_log_user_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX audit_log_user_idx ON public.audit_log USING btree (user_id);
 
 
 --
@@ -260,11 +472,71 @@ CREATE INDEX import_jobs_status_created_idx ON public.import_jobs USING btree (s
 
 
 --
+-- Name: sessions_expires_at_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX sessions_expires_at_idx ON public.sessions USING btree (expires_at);
+
+
+--
+-- Name: sessions_user_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX sessions_user_idx ON public.sessions USING btree (user_id);
+
+
+--
+-- Name: users_active_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX users_active_idx ON public.users USING btree (active) WHERE (active = true);
+
+
+--
+-- Name: users_email_lower_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX users_email_lower_idx ON public.users USING btree (lower(email)) WHERE (email IS NOT NULL);
+
+
+--
+-- Name: api_keys api_keys_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.api_keys
+    ADD CONSTRAINT api_keys_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: audit_log audit_log_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.audit_log
+    ADD CONSTRAINT audit_log_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE SET NULL;
+
+
+--
 -- Name: chunks chunks_claim_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.chunks
     ADD CONSTRAINT chunks_claim_id_fkey FOREIGN KEY (claim_id) REFERENCES public.claims(id) ON DELETE CASCADE;
+
+
+--
+-- Name: sessions sessions_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sessions
+    ADD CONSTRAINT sessions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: users users_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE SET NULL;
 
 
 --
@@ -284,4 +556,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260225122000'),
     ('20260225123000'),
     ('20260226120000'),
-    ('20260226130000');
+    ('20260226130000'),
+    ('20260409120000');
