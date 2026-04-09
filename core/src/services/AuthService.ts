@@ -79,7 +79,7 @@ export class AuthService {
     if (!withHash || !passwordOk || !withHash.active || !withHash.passwordHash) {
       await auditLogService.log("auth.login_failed", {
         metadata: { email },
-        ip,
+        ipAddress: ip,
       });
       throw new Error("Invalid email or password");
     }
@@ -103,7 +103,7 @@ export class AuthService {
       userId: user.id,
       targetType: "user",
       targetId: user.id,
-      ip,
+      ipAddress: ip,
     });
 
     return { user, sessionToken: rawToken };
@@ -121,7 +121,7 @@ export class AuthService {
     if (rows[0]) {
       await auditLogService.log("auth.logout", {
         userId: rows[0].user_id,
-        ip,
+        ipAddress: ip,
       });
     }
   }

@@ -38,7 +38,7 @@ export function expandPreset(preset: RolePreset): Permission[] {
  */
 export function hasPermission(
   subject: { permissions: readonly string[] },
-  required: Permission
+  required: string
 ): boolean {
   if (subject.permissions.includes("admin")) return true;
   return subject.permissions.includes(required);
