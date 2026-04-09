@@ -38,14 +38,6 @@ const configSchema = z.object({
   // Path to serve Nuxt frontend static files (relative or absolute)
   staticDir: z.string().optional(),
 
-  /**
-   * @deprecated Legacy env-var key support. Kept so existing middleware
-   * compiles until the auth rewrite lands in phase 3. Remove in phase 8.
-   */
-  apiKey: z.string().optional(),
-  /** @deprecated see `apiKey` */
-  mcpApiKey: z.string().optional(),
-
   // Authentication + session handling
   auth: z.object({
     // HMAC pepper for session tokens. Required in production - in test/dev a
@@ -111,10 +103,6 @@ function loadConfig() {
     },
 
     staticDir: process.env.CHECKBOT_RAG_STATIC_DIR,
-
-    // deprecated; see config schema comment
-    apiKey: process.env.CHECKBOT_RAG_API_KEY?.trim() || undefined,
-    mcpApiKey: process.env.CHECKBOT_RAG_MCP_API_KEY?.trim() || undefined,
 
     auth: {
       sessionSecret: process.env.CHECKBOT_RAG_SESSION_SECRET?.trim() || undefined,
