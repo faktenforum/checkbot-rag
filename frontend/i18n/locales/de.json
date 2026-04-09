@@ -1,11 +1,4 @@
 {
-  "nav": {
-    "start": "Start",
-    "claims": "Claims",
-    "import": "Import",
-    "ariaLabel": "Hauptnavigation",
-    "openAria": "Navigation öffnen"
-  },
   "search": {
     "title": "Faktencheck-Suche",
     "placeholder": "Suche nach Faktenchecks...",
@@ -120,6 +113,88 @@
     "source": "Quelle",
     "details": "Details",
     "back": "Zurück",
-    "na": "—"
+    "na": "—",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "active": "Aktiv",
+    "inactive": "Inaktiv",
+    "saved": "Gespeichert"
+  },
+  "auth": {
+    "email": "E-Mail",
+    "password": "Passwort",
+    "login": "Anmelden",
+    "logout": "Abmelden",
+    "loginTitle": "Bei Checkbot RAG anmelden",
+    "invalidCredentials": "Ungültige E-Mail oder Passwort"
+  },
+  "users": {
+    "title": "Benutzer",
+    "create": "Benutzer anlegen",
+    "name": "Name",
+    "email": "E-Mail",
+    "type": "Typ",
+    "permissions": "Berechtigungen",
+    "source": "Quelle",
+    "active": "Aktiv",
+    "manual": "manuell",
+    "profile": "Profil",
+    "changePassword": "Passwort ändern",
+    "confirmPassword": "Passwort bestätigen",
+    "passwordMismatch": "Passwörter stimmen nicht überein",
+    "deactivate": "Deaktivieren"
+  },
+  "apiKeys": {
+    "title": "API-Schlüssel",
+    "create": "Schlüssel anlegen",
+    "name": "Name",
+    "prefix": "Präfix",
+    "description": "Beschreibung",
+    "userId": "Benutzer-ID",
+    "userIdPlaceholder": "UUID des Besitzers",
+    "unlimited": "Unbegrenzt",
+    "rateLimitPoints": "Rate Limit (Anfragen)",
+    "rateLimitDuration": "Rate-Limit-Fenster (Sekunden)",
+    "expiresAt": "Läuft ab",
+    "details": "Schlüsseldetails",
+    "revoke": "Widerrufen",
+    "rawKeyWarning": "Kopiere diesen Schlüssel jetzt – er wird nicht erneut angezeigt.",
+    "copyKey": "Schlüssel kopieren",
+    "copied": "Kopiert!",
+    "done": "Fertig"
+  },
+  "nav": {
+    "start": "Start",
+    "claims": "Claims",
+    "import": "Import",
+    "apiKeys": "API-Schlüssel",
+    "users": "Benutzer",
+    "audit": "Audit-Log",
+    "ariaLabel": "Hauptnavigation",
+    "openAria": "Navigation öffnen",
+    "userMenu": "Konto"
+  },
+  "permissions": {
+    "claimsRead": "claims:read",
+    "claimsWrite": "claims:write",
+    "search": "search",
+    "import": "import",
+    "mcpUse": "mcp:use",
+    "usersRead": "users:read",
+    "usersWrite": "users:write",
+    "apiKeysReadAll": "api_keys:read_all",
+    "admin": "admin"
+  },
+  "roles": {
+    "admin": "Admin",
+    "partner": "Partner",
+    "service": "Service",
+    "mcpAgent": "MCP-Agent",
+    "viewer": "Betrachter"
+  },
+  "audit": {
+    "filterAction": "Nach Aktion filtern",
+    "filterUser": "Nach Benutzer-ID filtern"
   }
 }

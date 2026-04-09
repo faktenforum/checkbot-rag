@@ -1,11 +1,4 @@
 {
-  "nav": {
-    "start": "Home",
-    "claims": "Claims",
-    "import": "Import",
-    "ariaLabel": "Main navigation",
-    "openAria": "Open navigation"
-  },
   "search": {
     "title": "Fact-check search",
     "placeholder": "Search fact checks...",
@@ -120,6 +113,88 @@
     "source": "Source",
     "details": "Details",
     "back": "Back",
-    "na": "—"
+    "na": "—",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "active": "Active",
+    "inactive": "Inactive",
+    "saved": "Saved"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "login": "Log in",
+    "logout": "Log out",
+    "loginTitle": "Sign in to Checkbot RAG",
+    "invalidCredentials": "Invalid email or password"
+  },
+  "users": {
+    "title": "Users",
+    "create": "Create user",
+    "name": "Name",
+    "email": "Email",
+    "type": "Type",
+    "permissions": "Permissions",
+    "source": "Source",
+    "active": "Active",
+    "manual": "manual",
+    "profile": "Profile",
+    "changePassword": "Change password",
+    "confirmPassword": "Confirm password",
+    "passwordMismatch": "Passwords do not match",
+    "deactivate": "Deactivate"
+  },
+  "apiKeys": {
+    "title": "API Keys",
+    "create": "Create key",
+    "name": "Name",
+    "prefix": "Prefix",
+    "description": "Description",
+    "userId": "User ID",
+    "userIdPlaceholder": "UUID of the owner",
+    "unlimited": "Unlimited",
+    "rateLimitPoints": "Rate limit (requests)",
+    "rateLimitDuration": "Rate limit window (seconds)",
+    "expiresAt": "Expires at",
+    "details": "Key details",
+    "revoke": "Revoke",
+    "rawKeyWarning": "Copy this key now — it will not be shown again.",
+    "copyKey": "Copy key",
+    "copied": "Copied!",
+    "done": "Done"
+  },
+  "nav": {
+    "start": "Home",
+    "claims": "Claims",
+    "import": "Import",
+    "apiKeys": "API Keys",
+    "users": "Users",
+    "audit": "Audit log",
+    "ariaLabel": "Main navigation",
+    "openAria": "Open navigation",
+    "userMenu": "Account"
+  },
+  "permissions": {
+    "claimsRead": "claims:read",
+    "claimsWrite": "claims:write",
+    "search": "search",
+    "import": "import",
+    "mcpUse": "mcp:use",
+    "usersRead": "users:read",
+    "usersWrite": "users:write",
+    "apiKeysReadAll": "api_keys:read_all",
+    "admin": "admin"
+  },
+  "roles": {
+    "admin": "Admin",
+    "partner": "Partner",
+    "service": "Service",
+    "mcpAgent": "MCP agent",
+    "viewer": "Viewer"
+  },
+  "audit": {
+    "filterAction": "Filter by action",
+    "filterUser": "Filter by user ID"
   }
 }
