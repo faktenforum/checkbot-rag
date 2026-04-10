@@ -11,24 +11,15 @@ type NavItem = {
 };
 
 const items = computed<NavItem[]>(() => [
-  {
-    label: t("nav.start"),
-    icon: "i-heroicons-home",
-    to: "/",
-    isActive: (path) => path === "/",
-  },
-  {
-    label: t("nav.claims"),
-    icon: "i-heroicons-document-text",
-    to: "/claims",
-    isActive: (path) => path.startsWith("/claims"),
-  },
-  {
-    label: t("nav.import"),
-    icon: "i-heroicons-arrow-up-tray",
-    to: "/import",
-    isActive: (path) => path === "/import",
-  },
+  ...(hasPermission("search")
+    ? [{ label: t("nav.start"), icon: "i-heroicons-home", to: "/", isActive: (path: string) => path === "/" }]
+    : []),
+  ...(hasPermission("claims:read")
+    ? [{ label: t("nav.claims"), icon: "i-heroicons-document-text", to: "/claims", isActive: (path: string) => path.startsWith("/claims") }]
+    : []),
+  ...(hasPermission("import")
+    ? [{ label: t("nav.import"), icon: "i-heroicons-arrow-up-tray", to: "/import", isActive: (path: string) => path === "/import" }]
+    : []),
   ...(hasPermission("users:read")
     ? [
         {
