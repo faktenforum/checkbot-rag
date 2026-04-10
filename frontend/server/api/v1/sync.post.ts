@@ -9,9 +9,9 @@ const SyncSchema = z.object({
 
 export default defineEventHandler(async (event) => {
   assertPermission(event, "import");
-  const { url: faktenforum_url, apiKey: faktenforum_api_key } = config.faktenforum;
+  const { url: faktenforumUrl, apiKey: faktenforumApiKey } = config.faktenforum;
 
-  if (!faktenforum_url) {
+  if (!faktenforumUrl) {
     setResponseStatus(event, 503);
     return { error: "CHECKBOT_RAG_FAKTENFORUM_URL is not configured" };
   }
@@ -23,13 +23,13 @@ export default defineEventHandler(async (event) => {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
-  if (faktenforum_api_key) {
-    headers["x-api-key"] = faktenforum_api_key;
+  if (faktenforumApiKey) {
+    headers["x-api-key"] = faktenforumApiKey;
   }
 
   let claims: ClaimJson[];
   try {
-    const response = await fetch(`${faktenforum_url}/api/v1/export/claims`, {
+    const response = await fetch(`${faktenforumUrl}/api/v1/export/claims`, {
       headers,
       signal: AbortSignal.timeout(30_000),
     });
