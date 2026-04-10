@@ -171,6 +171,7 @@
   },
   "nav": {
     "start": "Home",
+    "search": "Search",
     "claims": "Claims",
     "import": "Import",
     "apiKeys": "API Keys",
