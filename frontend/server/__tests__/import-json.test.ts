@@ -6,6 +6,10 @@ const mockStart = mock(() => Promise.resolve("job-abc"));
 mock.module("@checkbot/core", () => ({
   importService: { start: mockStart },
   IMPORT_LANGUAGE_CODES: ["de", "en", "fr", "es", "it", "pt", "nl"] as const,
+  PERMISSIONS: [
+    "claims:read", "claims:write", "search", "import", "mcp:use",
+    "users:read", "users:write", "api_keys:read_all", "admin",
+  ] as const,
   config: { faktenforum: { url: undefined, apiKey: undefined } }
 }));
 
