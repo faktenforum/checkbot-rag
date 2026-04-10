@@ -72,7 +72,7 @@ const router = useRouter();
 async function handleDelete() {
   try {
     await deleteKey(id);
-    router.push("/api-keys");
+    router.push("/keys");
   } catch (err) {
     error.value = (err as Error).message;
   }
@@ -82,7 +82,7 @@ async function handleDelete() {
 <template>
   <div class="max-w-lg space-y-6" v-if="key">
     <div class="flex items-center gap-3">
-      <UButton to="/api-keys" variant="ghost" icon="i-heroicons-arrow-left" size="sm" />
+      <UButton to="/keys" variant="ghost" icon="i-heroicons-arrow-left" size="sm" />
       <h1 class="text-2xl font-bold">{{ key.name }}</h1>
       <UBadge :color="key.active ? 'success' : 'neutral'" size="xs">
         {{ key.active ? t("common.active") : t("common.inactive") }}
