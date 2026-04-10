@@ -44,11 +44,14 @@ All endpoints validate input using Zod schemas under `server/schemas`.
 
 Main pages under `app/pages`:
 
-- `/` - search view with hybrid search, filters (rating, category, language, limit), and top-level stats.
-- `/claims` - paginated table of claims with filters and links to detail pages; claim detail shows language when set.
-- `/claims/[id]` - fact-check detail page (short ID or UUID), showing metadata and chunks.
-- `/import` - import form (file path, language) and live list of import jobs with progress, cancellation, and deletion.
-- `/stats` - statistics view (summary of counts and distributions, if present).
+- `/` - dashboard with aggregate stats.
+- `/search` - hybrid search with filters (rating, category, status, language, visibility, FTS/vector toggles).
+- `/claims` - paginated table of claims with filters; `/claims/[id]` shows metadata and chunks.
+- `/import` - import form (file path, language) and live job list with progress, cancellation, and deletion.
+- `/users` - admin user management (create/edit/deactivate; requires `users:read`).
+- `/keys` - API key management (own keys; admins see all).
+- `/profile` - own profile and password change.
+- `/audit` - audit log viewer with filters (requires `admin`).
 
 Shared layout and shell components (`AppShell`, `SidebarNav`, `Logo*`) live under `app/components` and `app/layouts`.
 
@@ -72,27 +75,37 @@ Nuxt configuration lives in `nuxt.config.ts`. Relevant points:
 
 The server itself reads all `CHECKBOT_RAG_*` environment variables through `@checkbot/core` (see `core/README.md`).
 
-### REST API authentication
+### Authentication
 
-- Optional: If `CHECKBOT_RAG_API_KEY` is set, the middleware in `server/middleware/04.api-auth.ts` requires:
+All `/api/**` and `/mcp` routes require authentication. `/health` is public.
+
+Two methods are accepted:
+
+1. **Session cookie** - set after logging in at `/login`. The cookie is `HttpOnly`, `SameSite=Strict`, valid for 7 days rolling (30-day absolute cap).
+
+2. **Bearer token** - API key created via the UI or bootstrapped from env vars:
 
     ```http
-    Authorization: Bearer <CHECKBOT_RAG_API_KEY>
+    Authorization: Bearer ffk_<prefix>_<secret>
     ```
 
-  All `/api/**` routes are protected. `/health` remains unauthenticated.
+Effective permissions for a Bearer request are `user.permissions ∩ key.permissions`.
+
+Bootstrap env vars create service users on startup:
+
+| Env var | Service user | Default permissions |
+|---------|-------------|---------------------|
+| `CHECKBOT_RAG_BOOTSTRAP_FAKTENFORUM_KEY` | `faktenforum` | `claims:read`, `claims:write`, `search`, `import` |
+| `CHECKBOT_RAG_BOOTSTRAP_MCP_KEY` | `mcp-agent` | `mcp:use`, `claims:read`, `search` |
+
+Admin login is bootstrapped via `CHECKBOT_RAG_BOOTSTRAP_ADMIN_EMAIL` + `CHECKBOT_RAG_BOOTSTRAP_ADMIN_PASSWORD`.
 
 ### MCP endpoint
 
 The Nitro route `server/routes/mcp.ts` forwards requests to `@checkbot/mcp`:
 
 - `POST /mcp` - MCP HTTP/SSE endpoint.
-- Optional authentication:
-  - If `CHECKBOT_RAG_MCP_API_KEY` is set, the middleware in `server/middleware/03.mcp-auth.ts` requires:
-
-    ```http
-    Authorization: Bearer <CHECKBOT_RAG_MCP_API_KEY>
-    ```
+- Requires Bearer token with `mcp:use` permission (e.g. a key from the `mcp-agent` service user).
 
 See `mcp/README.md` for the available tools and payloads.
 

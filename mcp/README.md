@@ -55,13 +55,15 @@ The tool returns a Markdown list of `- <category>: <count> fact-checks`.
 
 The Nuxt integration in `frontend` exposes the MCP server at:
 
-- `POST /mcp` - HTTP/SSE transport, optional authentication via `CHECKBOT_RAG_MCP_API_KEY`.
+- `POST /mcp` - HTTP/SSE transport, requires `Authorization: Bearer <key>` with `mcp:use` permission.
 
-If `CHECKBOT_RAG_MCP_API_KEY` is set, requests must include:
+The `mcp-agent` service user key is bootstrapped from `CHECKBOT_RAG_BOOTSTRAP_MCP_KEY`. To use it:
 
 ```http
-Authorization: Bearer <CHECKBOT_RAG_MCP_API_KEY>
+Authorization: Bearer <CHECKBOT_RAG_BOOTSTRAP_MCP_KEY value>
 ```
+
+Alternatively, create a key with `mcp:use` permission in the admin UI at `/keys`.
 
 ### Embedding in another HTTP server
 

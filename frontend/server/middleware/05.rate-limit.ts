@@ -34,6 +34,11 @@ export default defineEventHandler(async (event) => {
   } catch (err) {
     if (err instanceof RateLimiterRes) {
       const retryAfter = Math.ceil(err.msBeforeNext / 1000);
+      console.warn("[rate-limit] rejected", {
+        path: event.path,
+        limiterKey,
+        retryAfterSeconds: retryAfter,
+      });
       setResponseStatus(event, 429);
       setResponseHeader(event, "Retry-After", retryAfter);
       setResponseHeader(event, "Content-Type", "application/json");
