@@ -2,6 +2,7 @@ import { apiKeyService } from "@checkbot/core";
 import {
   defineEventHandler,
   getHeader,
+  getRequestIP,
   setResponseStatus,
   setResponseHeader,
 } from "h3";
@@ -27,9 +28,12 @@ export default defineEventHandler(async (event) => {
     return;
   }
 
+  const ip = getRequestIP(event, { xForwardedFor: true });
+
   // No Bearer token and no session → 401
   const auth = getHeader(event, "authorization");
   if (!auth?.startsWith("Bearer ")) {
+    console.warn("[auth] missing token", { path: event.path, ip });
     setResponseStatus(event, 401);
     setResponseHeader(event, "Content-Type", "application/json");
     return { error: "Unauthorized" };
@@ -38,6 +42,8 @@ export default defineEventHandler(async (event) => {
   const rawKey = auth.slice(7).trim();
   const authenticated = await apiKeyService.validate(rawKey);
   if (!authenticated) {
+    const prefix = rawKey.slice(0, 12) || "(empty)";
+    console.warn("[auth] invalid api key", { path: event.path, keyPrefix: prefix, ip });
     setResponseStatus(event, 401);
     setResponseHeader(event, "Content-Type", "application/json");
     return { error: "Unauthorized" };

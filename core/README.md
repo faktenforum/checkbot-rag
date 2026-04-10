@@ -38,8 +38,11 @@ Key variables:
 | `CHECKBOT_RAG_SEARCH_OVERFETCH` | `3` | Overfetch factor for candidates before RRF |
 | `CHECKBOT_RAG_MAX_CHUNK_CHARS` | `6000` | Max characters per chunk before splitting |
 | `CHECKBOT_RAG_STATIC_DIR` | optional | Path to static files (used by the HTTP host) |
-| `CHECKBOT_RAG_API_KEY` | optional | API key required for `/api/**` if set |
-| `CHECKBOT_RAG_MCP_API_KEY` | optional | API key required for `/mcp` if set |
+| `CHECKBOT_RAG_SESSION_SECRET` | — | Random 32+ char secret for session token hashing (required) |
+| `CHECKBOT_RAG_BOOTSTRAP_ADMIN_EMAIL` | optional | Email for the initial admin account (bootstrapped on first run) |
+| `CHECKBOT_RAG_BOOTSTRAP_ADMIN_PASSWORD` | optional | Password for the initial admin account |
+| `CHECKBOT_RAG_BOOTSTRAP_FAKTENFORUM_KEY` | optional | Bearer key for the `faktenforum` service user |
+| `CHECKBOT_RAG_BOOTSTRAP_MCP_KEY` | optional | Bearer key for the `mcp-agent` service user |
 
 See `.env.example` at the repo root for a complete list and recommended defaults.
 
@@ -144,7 +147,12 @@ From the repo root there are convenience scripts in `package.json` which reuse t
 - `importService` - JSON import with job tracking.
 - `claimsService` - listing and detail access for claims.
 - `claimStatsService` - aggregate statistics.
-- Chunking and embedding helpers.
+- `userService` - user CRUD and env-var bootstrap.
+- `authService` - session-based login and logout.
+- `apiKeyService` - API key creation, validation, and management.
+- `auditLogService` - structured audit log writes and queries.
+- `rateLimiterService` - in-memory per-key rate limiting.
+- Chunking, embedding, and permission helpers.
 
 These are used by the `frontend` package (Nitro server) and by the `mcp` package to implement HTTP endpoints and MCP tools.
 
