@@ -15,8 +15,8 @@ jobs:
         image: pgvector/pgvector:pg17
         env:
           POSTGRES_DB: checkbot_rag_test
-          POSTGRES_USER: checkbot_rag
-          POSTGRES_PASSWORD: test_password
+          POSTGRES_USER: checkbot_rag_test
+          POSTGRES_PASSWORD: checkbot_rag_test
         ports:
           - 55432:5432
         options: >-
@@ -26,11 +26,7 @@ jobs:
           --health-retries 5
 
     env:
-      CHECKBOT_RAG_POSTGRES_HOST: localhost
-      CHECKBOT_RAG_POSTGRES_PORT: 55432
-      CHECKBOT_RAG_POSTGRES_DB: checkbot_rag_test
-      CHECKBOT_RAG_POSTGRES_USER: checkbot_rag
-      CHECKBOT_RAG_POSTGRES_PASSWORD: test_password
+      # Required by the app config parser (not used by tests themselves)
       CHECKBOT_RAG_EMBEDDING_API_KEY: test_key
       CHECKBOT_RAG_SESSION_SECRET: test-session-secret-at-least-32-chars-long!
 
@@ -51,7 +47,7 @@ jobs:
           docker run --rm \
             --network host \
             -v "${{ github.workspace }}/core/db:/db" \
-            -e DATABASE_URL="postgres://checkbot_rag:test_password@localhost:55432/checkbot_rag_test?sslmode=disable" \
+            -e DATABASE_URL="postgres://checkbot_rag_test:checkbot_rag_test@localhost:55432/checkbot_rag_test?sslmode=disable" \
             -e DBMATE_MIGRATIONS_TABLE=checkbot_schema_migrations \
             ghcr.io/amacneil/dbmate:latest up
 

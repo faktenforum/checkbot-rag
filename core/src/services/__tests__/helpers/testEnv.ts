@@ -26,6 +26,15 @@ process.env.CHECKBOT_RAG_EMBEDDING_API_KEY ??= "test-key";
 // Stable session secret for test runs
 process.env.CHECKBOT_RAG_SESSION_SECRET ??= "test-session-secret-test-session-secret";
 
+// Clear bootstrap vars so `config` doesn't pick up values from a local .env
+// file. Individual bootstrap tests set these explicitly via process.env
+// before calling bootstrapFromEnv(), but config is frozen at import time so
+// we must ensure they start unset here.
+delete process.env.CHECKBOT_RAG_BOOTSTRAP_ADMIN_EMAIL;
+delete process.env.CHECKBOT_RAG_BOOTSTRAP_ADMIN_PASSWORD;
+delete process.env.CHECKBOT_RAG_BOOTSTRAP_FAKTENFORUM_KEY;
+delete process.env.CHECKBOT_RAG_BOOTSTRAP_MCP_KEY;
+
 // Shorter idle timeout so the pool lets the process exit quickly after
 // the last test - bun test doesn't call db.end() itself and leaving the
 // pool open would hang the run.
