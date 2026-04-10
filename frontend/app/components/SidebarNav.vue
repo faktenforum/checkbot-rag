@@ -11,8 +11,9 @@ type NavItem = {
 };
 
 const items = computed<NavItem[]>(() => [
+  { label: t("nav.start"), icon: "i-heroicons-home", to: "/", isActive: (path: string) => path === "/" },
   ...(hasPermission("search")
-    ? [{ label: t("nav.start"), icon: "i-heroicons-home", to: "/", isActive: (path: string) => path === "/" }]
+    ? [{ label: t("nav.search"), icon: "i-heroicons-magnifying-glass", to: "/search", isActive: (path: string) => path === "/search" }]
     : []),
   ...(hasPermission("claims:read")
     ? [{ label: t("nav.claims"), icon: "i-heroicons-document-text", to: "/claims", isActive: (path: string) => path.startsWith("/claims") }]
