@@ -1,8 +1,19 @@
 <script lang="ts" setup>
+import type { ColumnDef } from "@tanstack/vue-table";
+
 definePageMeta({ middleware: "auth" });
 
 const { t } = useI18n();
 const { list } = useAuditLog();
+
+interface AuditEntry {
+  id: number;
+  userId: string | null;
+  action: string;
+  targetType: string | null;
+  targetId: string | null;
+  createdAt: string;
+}
 
 const filter = reactive({
   action: "",
@@ -26,13 +37,13 @@ const { data, pending, refresh } = useAsyncData(
   { watch: [filter] }
 );
 
-const columns = [
-  { key: "createdAt", label: "Time" },
-  { key: "action", label: "Action" },
-  { key: "userId", label: "User" },
-  { key: "targetType", label: "Target" },
-  { key: "targetId", label: "Target ID" },
-];
+const columns = computed<ColumnDef<AuditEntry>[]>(() => [
+  { accessorKey: "createdAt", header: "Time", enableSorting: false },
+  { accessorKey: "action", header: "Action", enableSorting: false },
+  { accessorKey: "userId", header: "User", enableSorting: false },
+  { accessorKey: "targetType", header: "Target", enableSorting: false },
+  { accessorKey: "targetId", header: "Target ID", enableSorting: false },
+]);
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString();
@@ -52,14 +63,14 @@ function formatDate(iso: string) {
     </div>
 
     <UTable :loading="pending" :data="data?.entries ?? []" :columns="columns">
-      <template #createdAt-data="{ row }">
-        <span class="text-xs font-mono">{{ formatDate(row.createdAt) }}</span>
+      <template #createdAt-cell="{ row }">
+        <span class="text-xs font-mono">{{ formatDate(row.original.createdAt) }}</span>
       </template>
-      <template #action-data="{ row }">
-        <UBadge size="xs" color="neutral">{{ row.action }}</UBadge>
+      <template #action-cell="{ row }">
+        <UBadge size="xs" color="neutral">{{ row.original.action }}</UBadge>
       </template>
-      <template #targetId-data="{ row }">
-        <span class="text-xs font-mono text-muted">{{ row.targetId ?? "—" }}</span>
+      <template #targetId-cell="{ row }">
+        <span class="text-xs font-mono text-muted">{{ row.original.targetId ?? "—" }}</span>
       </template>
     </UTable>
 

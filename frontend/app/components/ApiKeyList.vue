@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { ColumnDef } from "@tanstack/vue-table";
 import type { ApiKey } from "@checkbot/core";
 
 const props = defineProps<{ userId?: string }>();
@@ -31,46 +32,46 @@ async function handleDelete(key: ApiKey) {
   }
 }
 
-const columns = [
-  { key: "name", label: t("apiKeys.name") },
-  { key: "keyPrefix", label: t("apiKeys.prefix") },
-  { key: "permissions", label: t("users.permissions") },
-  { key: "active", label: t("users.active") },
-  { key: "actions", label: "" },
-];
+const columns = computed<ColumnDef<ApiKey>[]>(() => [
+  { accessorKey: "name", header: t("apiKeys.name") },
+  { accessorKey: "keyPrefix", header: t("apiKeys.prefix"), enableSorting: false },
+  { accessorKey: "permissions", header: t("users.permissions"), enableSorting: false },
+  { accessorKey: "active", header: t("users.active"), enableSorting: false },
+  { id: "actions", header: "" },
+]);
 </script>
 
 <template>
   <div>
     <UAlert v-if="error" color="error" :description="error" class="mb-3" />
     <UTable :loading="pending" :data="data?.keys ?? []" :columns="columns">
-      <template #permissions-data="{ row }">
+      <template #permissions-cell="{ row }">
         <div class="flex flex-wrap gap-1">
-          <UBadge v-for="p in row.permissions" :key="p" size="xs" color="neutral">{{ p }}</UBadge>
+          <UBadge v-for="p in row.original.permissions" :key="p" size="xs" color="neutral">{{ p }}</UBadge>
         </div>
       </template>
-      <template #active-data="{ row }">
-        <UBadge :color="row.active ? 'success' : 'neutral'" size="xs">
-          {{ row.active ? t("common.active") : t("common.inactive") }}
+      <template #active-cell="{ row }">
+        <UBadge :color="row.original.active ? 'success' : 'neutral'" size="xs">
+          {{ row.original.active ? t("common.active") : t("common.inactive") }}
         </UBadge>
       </template>
-      <template #actions-data="{ row }">
+      <template #actions-cell="{ row }">
         <div class="flex justify-end gap-2">
-          <UButton :to="`/api-keys/${row.id}`" size="xs" variant="ghost" icon="i-heroicons-pencil" />
+          <UButton :to="`/api-keys/${row.original.id}`" size="xs" variant="ghost" icon="i-heroicons-pencil" />
           <UButton
-            v-if="row.active"
+            v-if="row.original.active"
             size="xs"
             variant="ghost"
             color="warning"
             icon="i-heroicons-no-symbol"
-            @click="handleRevoke(row)"
+            @click="handleRevoke(row.original)"
           />
           <UButton
             size="xs"
             variant="ghost"
             color="error"
             icon="i-heroicons-trash"
-            @click="handleDelete(row)"
+            @click="handleDelete(row.original)"
           />
         </div>
       </template>
