@@ -123,8 +123,11 @@
   },
   "auth": {
     "email": "E-Mail",
+    "emailPlaceholder": "du@beispiel.de",
     "password": "Passwort",
+    "passwordPlaceholder": "••••••••",
     "login": "Anmelden",
+    "signIn": "Anmelden",
     "logout": "Abmelden",
     "loginTitle": "Bei Checkbot RAG anmelden",
     "invalidCredentials": "Ungültige E-Mail oder Passwort"
@@ -159,6 +162,8 @@
     "expiresAt": "Läuft ab",
     "details": "Schlüsseldetails",
     "revoke": "Widerrufen",
+    "createdTitle": "API-Schlüssel erstellt",
+    "createdDesc": "Kopiere diesen Schlüssel jetzt – er wird nicht erneut angezeigt.",
     "rawKeyWarning": "Kopiere diesen Schlüssel jetzt – er wird nicht erneut angezeigt.",
     "copyKey": "Schlüssel kopieren",
     "copied": "Kopiert!",
