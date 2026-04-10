@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { ApiKey } from "@checkbot/core";
 
-definePageMeta({ middleware: "auth" });
 
 const route = useRoute();
 const { t } = useI18n();

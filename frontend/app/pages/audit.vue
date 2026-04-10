@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnDef } from "@tanstack/vue-table";
 
-definePageMeta({ middleware: "auth" });
 
 const { t } = useI18n();
 const { list } = useAuditLog();
