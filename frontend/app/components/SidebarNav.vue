@@ -42,8 +42,8 @@ const items = computed<NavItem[]>(() => [
   {
     label: t("nav.apiKeys"),
     icon: "i-heroicons-key",
-    to: "/api-keys",
-    isActive: (path: string) => path.startsWith("/api-keys"),
+    to: "/keys",
+    isActive: (path: string) => path.startsWith("/keys"),
   },
   ...(hasPermission("admin")
     ? [

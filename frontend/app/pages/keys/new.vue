@@ -60,14 +60,14 @@ async function submit() {
 }
 
 function done() {
-  router.push("/api-keys");
+  router.push("/keys");
 }
 </script>
 
 <template>
   <div class="max-w-lg space-y-6">
     <div class="flex items-center gap-3">
-      <UButton to="/api-keys" variant="ghost" icon="i-heroicons-arrow-left" size="sm" />
+      <UButton to="/keys" variant="ghost" icon="i-heroicons-arrow-left" size="sm" />
       <h1 class="text-2xl font-bold">{{ t("apiKeys.create") }}</h1>
     </div>
 
@@ -112,7 +112,7 @@ function done() {
         <UAlert v-if="error" color="error" :description="error" />
 
         <div class="flex justify-end gap-2">
-          <UButton to="/api-keys" variant="ghost" color="neutral">{{ t("common.cancel") }}</UButton>
+          <UButton to="/keys" variant="ghost" color="neutral">{{ t("common.cancel") }}</UButton>
           <UButton type="submit" :loading="loading">{{ t("common.save") }}</UButton>
         </div>
       </form>

@@ -57,7 +57,7 @@ const columns = computed<ColumnDef<ApiKey>[]>(() => [
       </template>
       <template #actions-cell="{ row }">
         <div class="flex justify-end gap-2">
-          <UButton :to="`/api-keys/${row.original.id}`" size="xs" variant="ghost" icon="i-heroicons-pencil" />
+          <UButton :to="`/keys/${row.original.id}`" size="xs" variant="ghost" icon="i-heroicons-pencil" />
           <UButton
             v-if="row.original.active"
             size="xs"

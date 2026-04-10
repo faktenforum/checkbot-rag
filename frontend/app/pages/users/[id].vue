@@ -135,7 +135,7 @@ async function handleDeactivate() {
       <template #header>
         <div class="flex items-center justify-between">
           <h2 class="font-semibold">{{ t("nav.apiKeys") }}</h2>
-          <UButton :to="`/api-keys/new?userId=${user.id}`" size="xs" icon="i-heroicons-plus">
+          <UButton :to="`/keys/new?userId=${user.id}`" size="xs" icon="i-heroicons-plus">
             {{ t("apiKeys.create") }}
           </UButton>
         </div>
