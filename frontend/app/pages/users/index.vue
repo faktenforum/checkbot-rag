@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { ColumnDef } from "@tanstack/vue-table";
 import type { User } from "@checkbot/core";
 
 const { t } = useI18n();
@@ -7,15 +8,15 @@ const error = ref("");
 
 const { data, refresh, pending } = useAsyncData("users", () => list({ includeInactive: true }));
 
-const columns = [
-  { key: "name", label: t("users.name") },
-  { key: "email", label: t("users.email") },
-  { key: "userType", label: t("users.type") },
-  { key: "permissions", label: t("users.permissions") },
-  { key: "source", label: t("users.source") },
-  { key: "active", label: t("users.active") },
-  { key: "actions", label: "" },
-];
+const columns = computed<ColumnDef<User>[]>(() => [
+  { accessorKey: "name", header: t("users.name") },
+  { accessorKey: "email", header: t("users.email") },
+  { accessorKey: "userType", header: t("users.type") },
+  { accessorKey: "permissions", header: t("users.permissions"), enableSorting: false },
+  { accessorKey: "source", header: t("users.source"), enableSorting: false },
+  { accessorKey: "active", header: t("users.active"), enableSorting: false },
+  { id: "actions", header: "" },
+]);
 
 async function handleDeactivate(user: User) {
   error.value = "";
@@ -52,38 +53,38 @@ async function handleDelete(user: User) {
       :data="data?.users ?? []"
       :columns="columns"
     >
-      <template #permissions-data="{ row }">
+      <template #permissions-cell="{ row }">
         <div class="flex flex-wrap gap-1">
-          <UBadge v-for="p in row.permissions" :key="p" size="xs" color="neutral">{{ p }}</UBadge>
+          <UBadge v-for="p in row.original.permissions" :key="p" size="xs" color="neutral">{{ p }}</UBadge>
         </div>
       </template>
-      <template #active-data="{ row }">
-        <UBadge :color="row.active ? 'success' : 'neutral'" size="xs">
-          {{ row.active ? t("common.active") : t("common.inactive") }}
+      <template #active-cell="{ row }">
+        <UBadge :color="row.original.active ? 'success' : 'neutral'" size="xs">
+          {{ row.original.active ? t("common.active") : t("common.inactive") }}
         </UBadge>
       </template>
-      <template #source-data="{ row }">
-        <UBadge v-if="row.source === 'env_bootstrap'" size="xs" color="warning">env</UBadge>
+      <template #source-cell="{ row }">
+        <UBadge v-if="row.original.source === 'env_bootstrap'" size="xs" color="warning">env</UBadge>
         <span v-else class="text-muted text-xs">{{ t("users.manual") }}</span>
       </template>
-      <template #actions-data="{ row }">
+      <template #actions-cell="{ row }">
         <div class="flex justify-end gap-2">
-          <UButton :to="`/users/${row.id}`" size="xs" variant="ghost" icon="i-heroicons-pencil" />
+          <UButton :to="`/users/${row.original.id}`" size="xs" variant="ghost" icon="i-heroicons-pencil" />
           <UButton
-            v-if="row.active && row.source !== 'env_bootstrap'"
+            v-if="row.original.active && row.original.source !== 'env_bootstrap'"
             size="xs"
             variant="ghost"
             color="warning"
             icon="i-heroicons-no-symbol"
-            @click="handleDeactivate(row)"
+            @click="handleDeactivate(row.original)"
           />
           <UButton
-            v-if="row.source !== 'env_bootstrap'"
+            v-if="row.original.source !== 'env_bootstrap'"
             size="xs"
             variant="ghost"
             color="error"
             icon="i-heroicons-trash"
-            @click="handleDelete(row)"
+            @click="handleDelete(row.original)"
           />
         </div>
       </template>
