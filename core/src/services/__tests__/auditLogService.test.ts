@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from "bun:test";
-import { resetAuthTables, db } from "./helpers/db";
+import { resetAuthTables, db, dbAvailable } from "./helpers/db";
 import { auditLogService } from "../AuditLogService";
 
-describe("AuditLogService (db)", () => {
+describe.skipIf(!dbAvailable)("AuditLogService (db)", () => {
   beforeEach(async () => {
     await resetAuthTables();
   });

@@ -5,6 +5,22 @@
 import { db } from "../../DatabaseService";
 
 /**
+ * Whether the test database is reachable. Checked once at module load so
+ * tests can call `describe.skipIf(!dbAvailable)` to skip DB-backed suites
+ * gracefully when running in an environment without Postgres (e.g. when
+ * this repo is consumed as a submodule in a parent CI that doesn't spin
+ * up the test DB).
+ */
+export const dbAvailable: boolean = await (async () => {
+  try {
+    await db.query("SELECT 1");
+    return true;
+  } catch {
+    return false;
+  }
+})();
+
+/**
  * Reset all auth-related tables. Uses TRUNCATE for speed - no migrations
  * are re-run between tests.
  */
