@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "bun:test";
-import { resetAuthTables, db } from "./helpers/db";
+import { resetAuthTables, db, dbAvailable } from "./helpers/db";
 import { userService } from "../UserService";
 import { apiKeyService } from "../ApiKeyService";
 import type { Actor, User } from "../../types/auth";
@@ -19,7 +19,7 @@ async function seedUser(
   );
 }
 
-describe("ApiKeyService", () => {
+describe.skipIf(!dbAvailable)("ApiKeyService", () => {
   beforeEach(async () => {
     await resetAuthTables();
     apiKeyService.clearCache();

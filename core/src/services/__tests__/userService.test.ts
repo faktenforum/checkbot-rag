@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "bun:test";
-import { resetAuthTables, db } from "./helpers/db";
+import { resetAuthTables, db, dbAvailable } from "./helpers/db";
 import { userService } from "../UserService";
 import { auditLogService } from "../AuditLogService";
 import { passwordService } from "../../auth/passwordService";
@@ -8,7 +8,7 @@ import type { Actor } from "../../types/auth";
 
 const SYSTEM_ACTOR: Actor = { type: "system" };
 
-describe("UserService CRUD", () => {
+describe.skipIf(!dbAvailable)("UserService CRUD", () => {
   beforeEach(async () => {
     await resetAuthTables();
   });
@@ -325,7 +325,7 @@ describe("UserService CRUD", () => {
   });
 });
 
-describe("UserService.bootstrapFromEnv", () => {
+describe.skipIf(!dbAvailable)("UserService.bootstrapFromEnv", () => {
   beforeEach(async () => {
     await resetAuthTables();
     // Clear env vars so each test controls them explicitly

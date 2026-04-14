@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "bun:test";
-import { resetAuthTables, db } from "./helpers/db";
+import { resetAuthTables, db, dbAvailable } from "./helpers/db";
 import { userService } from "../UserService";
 import { authService } from "../AuthService";
 import type { Actor } from "../../types/auth";
@@ -23,7 +23,7 @@ async function seedHuman(opts: { email?: string; password?: string; active?: boo
   return user;
 }
 
-describe("AuthService", () => {
+describe.skipIf(!dbAvailable)("AuthService", () => {
   beforeEach(async () => {
     await resetAuthTables();
   });
