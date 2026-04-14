@@ -78,7 +78,17 @@ describe("POST /api/v1/import/json", () => {
   it("defaults language to 'de' when not provided", async () => {
     const { ImportFromJsonSchema } = await import("../schemas/import");
     const result = ImportFromJsonSchema.safeParse({
-      claims: [{ id: "1" }]
+      claims: [
+        {
+          id: "1",
+          status: "published",
+          shortId: "2024/1/1",
+          processId: 1,
+          createdAt: "2024-01-01",
+          createdBy: "u1",
+          internal: false,
+        },
+      ],
     });
 
     expect(result.success).toBe(true);
