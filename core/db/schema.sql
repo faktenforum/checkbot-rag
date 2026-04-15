@@ -1,7 +1,7 @@
 \restrict dbmate
 
--- Dumped from database version 18.3 (Debian 18.3-1.pgdg12+1)
--- Dumped by pg_dump version 18.3
+-- Dumped from database version 18.2 (Debian 18.2-1.pgdg13+1)
+-- Dumped by pg_dump version 18.2
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -91,6 +91,15 @@ ALTER SEQUENCE public.audit_log_id_seq OWNED BY public.audit_log.id;
 
 
 --
+-- Name: checkbot_schema_migrations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.checkbot_schema_migrations (
+    version character varying NOT NULL
+);
+
+
+--
 -- Name: chunks; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -150,7 +159,11 @@ CREATE TABLE public.claims (
     last_synced_at timestamp with time zone DEFAULT now(),
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
-    language text
+    language text,
+    submitter_notes text,
+    origins jsonb,
+    created_at_source timestamp with time zone,
+    created_by text
 );
 
 
@@ -172,15 +185,6 @@ CREATE TABLE public.import_jobs (
     created_at timestamp with time zone DEFAULT now(),
     canceled_at timestamp with time zone,
     language text
-);
-
-
---
--- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.schema_migrations (
-    version character varying NOT NULL
 );
 
 
@@ -265,6 +269,14 @@ ALTER TABLE ONLY public.audit_log
 
 
 --
+-- Name: checkbot_schema_migrations checkbot_schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.checkbot_schema_migrations
+    ADD CONSTRAINT checkbot_schema_migrations_pkey PRIMARY KEY (version);
+
+
+--
 -- Name: chunks chunks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -302,14 +314,6 @@ ALTER TABLE ONLY public.claims
 
 ALTER TABLE ONLY public.import_jobs
     ADD CONSTRAINT import_jobs_pkey PRIMARY KEY (id);
-
-
---
--- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.schema_migrations
-    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
 
 
 --
@@ -550,11 +554,12 @@ ALTER TABLE ONLY public.users
 -- Dbmate schema migrations
 --
 
-INSERT INTO public.schema_migrations (version) VALUES
+INSERT INTO public.checkbot_schema_migrations (version) VALUES
     ('20260225120000'),
     ('20260225121000'),
     ('20260225122000'),
     ('20260225123000'),
     ('20260226120000'),
     ('20260226130000'),
-    ('20260409120000');
+    ('20260409120000'),
+    ('20260416120000');
