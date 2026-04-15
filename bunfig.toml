@@ -1,0 +1,5 @@
+[test]
+# Preload script runs before any test module is imported. We use it to
+# point `config` at the ephemeral test DB so the `db` singleton in
+# DatabaseService.ts doesn't bake in production credentials.
+preload = ["./core/src/services/__tests__/helpers/testEnv.ts"]

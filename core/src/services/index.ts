@@ -5,3 +5,8 @@ export * from "./EmbeddingService.js";
 export * from "./ChunkingService.js";
 export * from "./ClaimsService.js";
 export * from "./ClaimStatsService.js";
+export * from "./AuditLogService.js";
+export * from "./UserService.js";
+export * from "./ApiKeyService.js";
+export * from "./RateLimiterService.js";
+export * from "./AuthService.js";

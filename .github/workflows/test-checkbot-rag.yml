@@ -1,0 +1,55 @@
+name: Test
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg17
+        env:
+          POSTGRES_DB: checkbot_rag_test
+          POSTGRES_USER: checkbot_rag_test
+          POSTGRES_PASSWORD: checkbot_rag_test
+        ports:
+          - 55432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      # Required by the app config parser (not used by tests themselves)
+      CHECKBOT_RAG_EMBEDDING_API_KEY: test_key
+      CHECKBOT_RAG_SESSION_SECRET: test-session-secret-at-least-32-chars-long!
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Run dbmate migrations
+        run: |
+          docker run --rm \
+            --network host \
+            -v "${{ github.workspace }}/core/db:/db" \
+            -e DATABASE_URL="postgres://checkbot_rag_test:checkbot_rag_test@localhost:55432/checkbot_rag_test?sslmode=disable" \
+            -e DBMATE_MIGRATIONS_TABLE=checkbot_schema_migrations \
+            ghcr.io/amacneil/dbmate:latest up
+
+      - name: Run tests
+        run: bun test

@@ -30,8 +30,11 @@ watch(
         </NuxtLink>
       </template>
       <template #default>
-        <div class="p-2.5 flex flex-col gap-1">
+        <div class="p-2.5 flex flex-col gap-1 h-full">
           <SidebarNav />
+          <div class="mt-auto pt-2 border-t border-default flex justify-end">
+            <UserMenu />
+          </div>
         </div>
       </template>
     </UDashboardSidebar>
@@ -51,6 +54,7 @@ watch(
             <LogoComplete class="block h-8 w-auto mt-2.5" />
           </NuxtLink>
         </div>
+        <UserMenu />
       </header>
       <div class="flex-1 min-w-0 flex flex-col overflow-y-auto p-4 md:p-8">
         <slot />

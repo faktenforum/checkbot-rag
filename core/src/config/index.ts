@@ -38,11 +38,30 @@ const configSchema = z.object({
   // Path to serve Nuxt frontend static files (relative or absolute)
   staticDir: z.string().optional(),
 
-  // Optional API key for REST API. If set, requests to /api/** must send Authorization: Bearer <key>
-  apiKey: z.string().optional(),
+  // Authentication + session handling
+  auth: z.object({
+    // HMAC pepper for session tokens. Required in production - in test/dev a
+    // weak default is used if unset. See sessionToken.ts for usage.
+    sessionSecret: z.string().default("dev-insecure-session-secret-change-me-please!!"),
+    sessionLifetimeDays: z.coerce.number().default(7),
+    sessionMaxLifetimeDays: z.coerce.number().default(30),
+    // Idempotent bootstrap - re-read on every startup. See UserService.bootstrapFromEnv().
+    bootstrap: z.object({
+      adminEmail: z.string().email().optional(),
+      adminPassword: z.string().min(8).optional(),
+      mcpKey: z.string().optional(),
+      faktenforumKey: z.string().optional(),
+    }),
+  }),
 
-  // Optional API key for MCP endpoint. If set, requests to /mcp must send Authorization: Bearer <key>
-  mcpApiKey: z.string().optional(),
+  // In-memory per-api-key rate limits (rate-limiter-flexible)
+  rateLimiting: z.object({
+    enabled: z.coerce.boolean().default(true),
+    defaultPoints: z.coerce.number().default(60),
+    defaultDurationSec: z.coerce.number().default(60),
+    searchPoints: z.coerce.number().default(30),
+    importPoints: z.coerce.number().default(10),
+  }),
 
   // Faktenforum integration: URL and API key for pulling claims via the export endpoint
   faktenforum: z.object({
@@ -84,8 +103,26 @@ function loadConfig() {
     },
 
     staticDir: process.env.CHECKBOT_RAG_STATIC_DIR,
-    apiKey: process.env.CHECKBOT_RAG_API_KEY?.trim() || undefined,
-    mcpApiKey: process.env.CHECKBOT_RAG_MCP_API_KEY?.trim() || undefined,
+
+    auth: {
+      sessionSecret: process.env.CHECKBOT_RAG_SESSION_SECRET?.trim() || undefined,
+      sessionLifetimeDays: process.env.CHECKBOT_RAG_SESSION_LIFETIME_DAYS,
+      sessionMaxLifetimeDays: process.env.CHECKBOT_RAG_SESSION_MAX_LIFETIME_DAYS,
+      bootstrap: {
+        adminEmail: process.env.CHECKBOT_RAG_BOOTSTRAP_ADMIN_EMAIL?.trim() || undefined,
+        adminPassword: process.env.CHECKBOT_RAG_BOOTSTRAP_ADMIN_PASSWORD || undefined,
+        mcpKey: process.env.CHECKBOT_RAG_BOOTSTRAP_MCP_KEY?.trim() || undefined,
+        faktenforumKey: process.env.CHECKBOT_RAG_BOOTSTRAP_FAKTENFORUM_KEY?.trim() || undefined,
+      },
+    },
+
+    rateLimiting: {
+      enabled: process.env.CHECKBOT_RAG_RATE_LIMIT_ENABLED,
+      defaultPoints: process.env.CHECKBOT_RAG_RATE_LIMIT_DEFAULT_POINTS,
+      defaultDurationSec: process.env.CHECKBOT_RAG_RATE_LIMIT_DEFAULT_DURATION_SEC,
+      searchPoints: process.env.CHECKBOT_RAG_RATE_LIMIT_SEARCH_POINTS,
+      importPoints: process.env.CHECKBOT_RAG_RATE_LIMIT_IMPORT_POINTS,
+    },
 
     faktenforum: {
       url: process.env.CHECKBOT_RAG_FAKTENFORUM_URL?.trim() || undefined,

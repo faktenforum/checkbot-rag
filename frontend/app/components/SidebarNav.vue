@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 const route = useRoute();
 const { t, locale, setLocale } = useI18n();
+const { hasPermission } = useAuth();
 
 type NavItem = {
   label: string;
@@ -10,24 +11,42 @@ type NavItem = {
 };
 
 const items = computed<NavItem[]>(() => [
+  { label: t("nav.start"), icon: "i-heroicons-home", to: "/", isActive: (path: string) => path === "/" },
+  ...(hasPermission("search")
+    ? [{ label: t("nav.search"), icon: "i-heroicons-magnifying-glass", to: "/search", isActive: (path: string) => path === "/search" }]
+    : []),
+  ...(hasPermission("claims:read")
+    ? [{ label: t("nav.claims"), icon: "i-heroicons-document-text", to: "/claims", isActive: (path: string) => path.startsWith("/claims") }]
+    : []),
+  ...(hasPermission("import")
+    ? [{ label: t("nav.import"), icon: "i-heroicons-arrow-up-tray", to: "/import", isActive: (path: string) => path === "/import" }]
+    : []),
+  ...(hasPermission("users:read")
+    ? [
+        {
+          label: t("nav.users"),
+          icon: "i-heroicons-users",
+          to: "/users",
+          isActive: (path: string) => path.startsWith("/users"),
+        },
+      ]
+    : []),
   {
-    label: t("nav.start"),
-    icon: "i-heroicons-home",
-    to: "/",
-    isActive: (path) => path === "/",
+    label: t("nav.apiKeys"),
+    icon: "i-heroicons-key",
+    to: "/keys",
+    isActive: (path: string) => path.startsWith("/keys"),
   },
-  {
-    label: t("nav.claims"),
-    icon: "i-heroicons-document-text",
-    to: "/claims",
-    isActive: (path) => path.startsWith("/claims"),
-  },
-  {
-    label: t("nav.import"),
-    icon: "i-heroicons-arrow-up-tray",
-    to: "/import",
-    isActive: (path) => path === "/import",
-  },
+  ...(hasPermission("admin")
+    ? [
+        {
+          label: t("nav.audit"),
+          icon: "i-heroicons-clipboard-document-list",
+          to: "/audit",
+          isActive: (path: string) => path === "/audit",
+        },
+      ]
+    : []),
 ]);
 
 const isActive = (item: NavItem) => (item.isActive ? item.isActive(route.path) : route.path === item.to);

@@ -6,6 +6,7 @@ export class DatabaseService {
   private vectorColumnEnsured = false;
 
   constructor() {
+    const isTestMode = process.env.CHECKBOT_RAG_TEST_MODE === "1";
     this.pool = new Pool({
       host: config.db.host,
       port: config.db.port,
@@ -13,8 +14,12 @@ export class DatabaseService {
       user: config.db.user,
       password: config.db.password,
       max: 10,
-      idleTimeoutMillis: 30000,
+      // In test mode we want the pool to release idle clients quickly so
+      // `bun test` exits cleanly after the last test finishes. Production
+      // keeps the longer timeout for connection reuse.
+      idleTimeoutMillis: isTestMode ? 500 : 30000,
       connectionTimeoutMillis: 5000,
+      allowExitOnIdle: isTestMode,
     });
 
     this.pool.on("error", (err) => {

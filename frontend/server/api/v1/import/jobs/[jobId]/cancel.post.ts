@@ -2,6 +2,7 @@ import { importService } from "@checkbot/core";
 import { JobIdParamSchema } from "../../../../../schemas/import";
 
 export default defineEventHandler(async (event) => {
+  assertPermission(event, "import");
   const jobId = getRouterParam(event, "jobId");
   const parsed = JobIdParamSchema.safeParse(jobId);
   if (!parsed.success) {
