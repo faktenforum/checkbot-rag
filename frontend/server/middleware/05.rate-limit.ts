@@ -1,5 +1,6 @@
 import { rateLimiterService, config, RateLimiterRes } from "@checkbot/core";
 import { defineEventHandler, setResponseStatus, setResponseHeader } from "h3";
+import { rateLimitRejectedTotal } from "../utils/metrics";
 
 function pointsForPath(path: string): number {
   if (path.startsWith("/api/v1/search")) return config.rateLimiting.searchPoints;
@@ -7,6 +8,12 @@ function pointsForPath(path: string): number {
     return config.rateLimiting.importPoints;
   }
   return config.rateLimiting.defaultPoints;
+}
+
+function bucketForPath(path: string): string {
+  if (path.startsWith("/api/v1/search")) return "search";
+  if (path.startsWith("/api/v1/import") || path.startsWith("/api/v1/sync")) return "import";
+  return "api";
 }
 
 function durationForPath(_path: string): number {
@@ -34,11 +41,14 @@ export default defineEventHandler(async (event) => {
   } catch (err) {
     if (err instanceof RateLimiterRes) {
       const retryAfter = Math.ceil(err.msBeforeNext / 1000);
+      const bucket = bucketForPath(event.path);
       console.warn("[rate-limit] rejected", {
         path: event.path,
         limiterKey,
+        bucket,
         retryAfterSeconds: retryAfter,
       });
+      rateLimitRejectedTotal.inc({ bucket });
       setResponseStatus(event, 429);
       setResponseHeader(event, "Retry-After", retryAfter);
       setResponseHeader(event, "Content-Type", "application/json");

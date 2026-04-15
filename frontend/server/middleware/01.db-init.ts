@@ -4,7 +4,13 @@ import { defineEventHandler } from "h3";
 let initialized = false;
 let initPromise: Promise<void> | null = null;
 
-export default defineEventHandler(async () => {
+// Paths that must respond even when the DB is unavailable. /metrics is used
+// by Prometheus to alert *on* DB outages; /health deliberately reports the
+// DB status without requiring it.
+const DB_FREE_PATHS = new Set(["/metrics", "/health"]);
+
+export default defineEventHandler(async (event) => {
+  if (DB_FREE_PATHS.has(event.path)) return;
   if (initialized) return;
   if (!initPromise) {
     initPromise = db.initialize()
