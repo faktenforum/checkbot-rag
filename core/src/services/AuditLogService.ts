@@ -8,6 +8,7 @@ import type { AuditLogEntry } from "../types/auth.js";
 export const AUDIT_ACTIONS = [
   "auth.login",
   "auth.login_failed",
+  "auth.login_rate_limited",
   "auth.logout",
   "user.create",
   "user.update",

@@ -1,0 +1,89 @@
+import {
+  rateLimiterService,
+  config,
+  RateLimiterRes,
+  auditLogService,
+} from "@checkbot/core";
+import {
+  defineEventHandler,
+  getRequestIP,
+  readBody,
+  setResponseStatus,
+  setResponseHeader,
+} from "h3";
+
+// Runs BEFORE api-auth (04) and the authenticated rate-limit (05), because
+// /api/v1/auth/login is a PUBLIC_PATH and otherwise unthrottled. Two parallel
+// buckets: per-IP and per-email (lowercased). Either bucket exhausting returns
+// 429, so we defend against both single-IP brute-force and email-spray over
+// many residential proxies.
+
+const LOGIN_PATH = "/api/v1/auth/login";
+
+export default defineEventHandler(async (event) => {
+  if (event.path !== LOGIN_PATH) return;
+  if (event.method !== "POST") return;
+  if (!config.rateLimiting.enabled) return;
+
+  const ip = getRequestIP(event, { xForwardedFor: true }) ?? "unknown";
+
+  // h3's readBody caches on the event, so reading it here does not consume
+  // the stream — the downstream handler still gets the body via readBody().
+  let email: string | undefined;
+  try {
+    const body = (await readBody(event)) as { email?: unknown };
+    if (typeof body?.email === "string") {
+      email = body.email.trim().toLowerCase();
+    }
+  } catch {
+    // Malformed body → let the route handler return its 400; skip rate limit.
+    return;
+  }
+
+  const ipKey = `login_ip:${ip}`;
+  const emailKey = email ? `login_email:${email}` : null;
+
+  try {
+    await rateLimiterService.consume(
+      ipKey,
+      config.rateLimiting.loginIpPoints,
+      config.rateLimiting.loginIpDurationSec
+    );
+    if (emailKey) {
+      await rateLimiterService.consume(
+        emailKey,
+        config.rateLimiting.loginEmailPoints,
+        config.rateLimiting.loginEmailDurationSec
+      );
+    }
+  } catch (err) {
+    if (err instanceof RateLimiterRes) {
+      const retryAfter = Math.ceil(err.msBeforeNext / 1000);
+      const bucket = err.consumedPoints >= config.rateLimiting.loginEmailPoints && emailKey
+        ? "login_email"
+        : "login_ip";
+
+      console.warn("[login-rate-limit] rejected", {
+        ip,
+        email,
+        bucket,
+        retryAfterSeconds: retryAfter,
+      });
+
+      // Fire-and-forget audit entry — do not block the response on DB write.
+      void auditLogService.log("auth.login_rate_limited", {
+        metadata: { ip, email, bucket },
+        ipAddress: ip,
+      });
+
+      setResponseStatus(event, 429);
+      setResponseHeader(event, "Retry-After", retryAfter);
+      setResponseHeader(event, "Content-Type", "application/json");
+      return {
+        error: "Too Many Requests",
+        retryAfterSeconds: retryAfter,
+      };
+    }
+    throw err;
+  }
+});
