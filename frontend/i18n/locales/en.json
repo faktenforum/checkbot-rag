@@ -84,6 +84,11 @@
     "published": "Published",
     "imported": "Imported"
   },
+  "sync": {
+    "cardTitle": "Faktenforum sync",
+    "description": "Pull all claims from the connected Faktenforum instance into the RAG index. The run is idempotent — already-indexed claims are skipped.",
+    "startButton": "Sync now"
+  },
   "import": {
     "title": "Import",
     "cardTitle": "Import fact checks",

@@ -5,6 +5,38 @@
       {{ t('import.title') }}
     </h1>
 
+    <!-- Faktenforum sync (above file import) -->
+    <UCard>
+      <template #header>
+        <div class="flex items-center gap-2">
+          <UIcon name="i-heroicons-arrow-path" class="w-5 h-5" />
+          <p class="font-medium">{{ t('sync.cardTitle') }}</p>
+        </div>
+        <p class="text-sm text-neutral-500 mt-1">
+          {{ t('sync.description') }}
+        </p>
+      </template>
+
+      <div class="flex items-center gap-4">
+        <div class="flex-1" />
+        <UButton
+          :loading="syncing"
+          icon="i-heroicons-arrow-path"
+          @click="startSync"
+        >
+          {{ t('sync.startButton') }}
+        </UButton>
+      </div>
+
+      <UAlert
+        v-if="syncError"
+        class="mt-4"
+        color="error"
+        :description="syncError"
+        icon="i-heroicons-exclamation-circle"
+      />
+    </UCard>
+
     <!-- New import form -->
     <UCard>
       <template #header>
@@ -166,6 +198,8 @@ const filePath = ref("/data/exports/claims_dump.json");
 const language = ref<string>("de");
 const importing = ref(false);
 const importError = ref<string | null>(null);
+const syncing = ref(false);
+const syncError = ref<string | null>(null);
 const actionLoadingId = ref<string | null>(null);
 const currentAction = ref<"cancel" | "delete" | null>(null);
 
@@ -199,6 +233,22 @@ async function startImport() {
     importError.value = (err as Error).message;
   } finally {
     importing.value = false;
+  }
+}
+
+async function startSync() {
+  syncing.value = true;
+  syncError.value = null;
+  try {
+    await apiFetch("/api/v1/sync", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+    await refetch();
+  } catch (err) {
+    syncError.value = (err as Error).message;
+  } finally {
+    syncing.value = false;
   }
 }
 

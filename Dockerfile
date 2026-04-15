@@ -26,7 +26,7 @@ RUN mkdir -p /data/exports
 EXPOSE 3020
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD wget -q --spider http://localhost:3020/health || exit 1
+  CMD wget -q --spider http://127.0.0.1:3020/health || exit 1
 
 ENV NODE_ENV=production
 ENV PORT=3020
