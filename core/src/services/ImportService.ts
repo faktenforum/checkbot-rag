@@ -256,6 +256,17 @@ export class ImportService {
     await db.withTransaction(async (client) => {
       let claimDbId: string;
 
+      const originsJson = JSON.stringify(
+        (claim.origins ?? []).map((o) => ({
+          url: o.url,
+          archiveUrl: o.archiveUrl,
+          file: o.file
+            ? { id: o.file.id, mimeType: o.file.mimeType, name: o.file.name }
+            : null,
+        }))
+      );
+      const createdByUsername = claim.createdByUser?.username ?? claim.createdBy ?? null;
+
       const existingMatch = existing.rows[0];
       if (existingMatch) {
         claimDbId = existingMatch.id;
@@ -266,7 +277,8 @@ export class ImportService {
              rating_statement = $6, rating_summary = $7, rating_label = $8,
              categories = $9, publishing_url = $10, publishing_date = $11,
              internal = $12, version_hash = $13, raw_data = $14,
-             language = $15,
+             language = $15, submitter_notes = $16, origins = $17::jsonb,
+             created_at_source = $18, created_by = $19,
              last_synced_at = NOW(), updated_at = NOW()
            WHERE id = $1`,
           [
@@ -285,6 +297,10 @@ export class ImportService {
             versionHash,
             JSON.stringify(claim),
             claimLanguage,
+            claim.submitterNotes,
+            originsJson,
+            claim.createdAt,
+            createdByUsername,
           ]
         );
         // Delete old chunks before re-inserting
@@ -296,8 +312,8 @@ export class ImportService {
              external_id, short_id, process_id, status, synopsis,
              rating_statement, rating_summary, rating_label, categories,
              publishing_url, publishing_date, internal, version_hash, raw_data,
-             language
-           ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+             language, submitter_notes, origins, created_at_source, created_by
+           ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17::jsonb,$18,$19)
            RETURNING id`,
           [
             claim.id,
@@ -315,6 +331,10 @@ export class ImportService {
             versionHash,
             JSON.stringify(claim),
             claimLanguage,
+            claim.submitterNotes,
+            originsJson,
+            claim.createdAt,
+            createdByUsername,
           ]
         );
         const insertRow = rows[0];
@@ -362,9 +382,14 @@ export class ImportService {
       id: claim.id,
       status: claim.status,
       synopsis: claim.synopsis,
+      submitterNotes: claim.submitterNotes,
       ratingLabelName: claim.ratingLabelName,
       ratingStatement: claim.ratingStatement,
       ratingSummary: claim.ratingSummary,
+      internal: claim.internal,
+      processId: claim.processId,
+      publishingUrl: claim.publishingUrl,
+      origins: (claim.origins ?? []).map((o) => ({ id: o.id, url: o.url })),
       facts: claim.facts.map((f) => ({
         id: f.id,
         text: f.text,

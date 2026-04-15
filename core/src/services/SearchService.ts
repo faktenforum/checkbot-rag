@@ -165,7 +165,11 @@ export class SearchService {
       return { query, totalResults: 0, claims: [] };
     }
 
-    // Fetch full chunk + claim data for ranked results
+    // Fetch full chunk + claim data for ranked results. ts_headline produces an
+    // html-escaped excerpt wrapped in <mark>…</mark> for FTS-matched tokens.
+    // Security invariant: the content is html-escaped INSIDE SQL before passing
+    // to ts_headline, so `<mark>` are the only HTML tags in the output. Safe to
+    // render as HTML downstream.
     const chunkIds = ranked.map((r) => r.id);
     const { rows: chunkRows } = await db.query<{
       id: number;
@@ -173,29 +177,48 @@ export class SearchService {
       chunk_type: string;
       fact_index: number | null;
       content: string;
+      snippet_html: string;
       metadata: Record<string, unknown>;
       external_id: string;
       short_id: string;
+      process_id: number | null;
       synopsis: string | null;
+      submitter_notes: string | null;
       rating_label: string | null;
       rating_summary: string | null;
       rating_statement: string | null;
       categories: string[];
       publishing_url: string | null;
       publishing_date: string | null;
+      origins: unknown;
       status: string;
       internal: boolean;
       language: string | null;
+      created_at_source: string | null;
+      created_by: string | null;
     }>(
       `SELECT
          c.id, c.claim_id, c.chunk_type, c.fact_index, c.content, c.metadata,
-         cl.external_id, cl.short_id, cl.synopsis, cl.rating_label,
-         cl.rating_summary, cl.rating_statement, cl.categories,
-         cl.publishing_url, cl.publishing_date, cl.status, cl.internal, cl.language
+         ts_headline(
+           '${ftsConfig}',
+           regexp_replace(
+             regexp_replace(
+               regexp_replace(c.content, '&', '&amp;', 'g'),
+               '<', '&lt;', 'g'
+             ),
+             '>', '&gt;', 'g'
+           ),
+           plainto_tsquery('${ftsConfig}', $2),
+           'StartSel=<mark>, StopSel=</mark>, MaxWords=60, MinWords=30, ShortWord=3, HighlightAll=FALSE, MaxFragments=2, FragmentDelimiter=" … "'
+         ) AS snippet_html,
+         cl.external_id, cl.short_id, cl.process_id, cl.synopsis, cl.submitter_notes,
+         cl.rating_label, cl.rating_summary, cl.rating_statement, cl.categories,
+         cl.publishing_url, cl.publishing_date, cl.origins, cl.status, cl.internal,
+         cl.language, cl.created_at_source, cl.created_by
        FROM public.chunks c
        JOIN public.claims cl ON c.claim_id = cl.id
        WHERE c.id = ANY($1::int[])`,
-      [chunkIds]
+      [chunkIds, query]
     );
 
     // Build a lookup map for quick access
@@ -216,6 +239,11 @@ export class SearchService {
         chunkType: row.chunk_type,
         factIndex: row.fact_index,
         content: row.content,
+        // Only expose highlighted snippet when FTS matched this chunk.
+        // ts_headline returns content even for non-matching queries (truncated
+        // from the start), which isn't meaningful for vector-only matches.
+        snippetHtml:
+          rrfResult.ftsScore !== undefined ? row.snippet_html : undefined,
         metadata: row.metadata,
         rrfScore: rrfResult.rrfScore,
         vecScore: rrfResult.vecScore,
@@ -232,7 +260,9 @@ export class SearchService {
         claimsMap.set(row.external_id, {
           externalId: row.external_id,
           shortId: row.short_id,
+          processId: row.process_id,
           synopsis: row.synopsis,
+          submitterNotes: row.submitter_notes,
           ratingLabel: row.rating_label,
           ratingSummary: row.rating_summary,
           ratingStatement: row.rating_statement,
@@ -241,9 +271,16 @@ export class SearchService {
           publishingDate: row.publishing_date
             ? new Date(row.publishing_date).toISOString()
             : null,
+          origins: Array.isArray(row.origins)
+            ? (row.origins as SearchResultClaim["origins"])
+            : [],
           status: row.status as SearchResultClaim["status"], // DB returns string; ClaimStatus is a string union
           internal: row.internal,
           language: row.language,
+          createdAtSource: row.created_at_source
+            ? new Date(row.created_at_source).toISOString()
+            : null,
+          createdBy: row.created_by,
           bestScore: chunk.rrfScore,
           chunks: [chunk],
         });

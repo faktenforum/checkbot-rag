@@ -34,25 +34,40 @@ export interface SearchResultChunk {
   chunkType: string;
   factIndex: number | null;
   content: string;
+  // HTML snippet with <mark> tags around FTS matches. Present only when the
+  // chunk matched via FTS. Source text is html-escaped before ts_headline runs,
+  // so the only tags here are the <mark> delimiters — safe to render via v-html.
+  snippetHtml?: string;
   metadata: Record<string, unknown>;
   rrfScore: number;
   vecScore?: number;
   ftsScore?: number;
 }
 
+export interface SearchResultOrigin {
+  url: string | null;
+  archiveUrl: string | null;
+  file: { id: string; mimeType: string; name: string } | null;
+}
+
 export interface SearchResultClaim {
   externalId: string;
   shortId: string;
+  processId: number | null;
   synopsis: string | null;
+  submitterNotes: string | null;
   ratingLabel: string | null;
   ratingSummary: string | null;
   ratingStatement: string | null;
   categories: string[];
   publishingUrl: string | null;
   publishingDate: string | null;
+  origins: SearchResultOrigin[];
   status: ClaimStatus;
   internal: boolean;
   language: string | null;
+  createdAtSource: string | null;
+  createdBy: string | null;
   bestScore: number;
   chunks: SearchResultChunk[];
 }

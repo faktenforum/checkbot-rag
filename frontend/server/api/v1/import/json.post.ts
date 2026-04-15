@@ -12,7 +12,11 @@ export default defineEventHandler(async (event) => {
   }
   const { claims, language, source } = result.data;
 
-  const jobId = await importService.start(claims as ClaimJson[], source ?? "api-json", language);
+  const jobId = await importService.start(
+    claims as unknown as ClaimJson[],
+    source ?? "api-json",
+    language
+  );
 
   setResponseStatus(event, 202);
   return {
