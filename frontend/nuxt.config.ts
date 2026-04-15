@@ -7,7 +7,41 @@ export default defineNuxtConfig({
 
   srcDir: "app",
 
-  modules: ["@nuxt/ui", "@pinia/nuxt", "@nuxt/eslint", "@nuxtjs/i18n"],
+  modules: ["@nuxt/ui", "@pinia/nuxt", "@nuxt/eslint", "@nuxtjs/i18n", "nuxt-security"],
+
+  // Defense-in-depth headers on top of the hand-rolled auth in core/. CSRF is
+  // not enabled here: all protected endpoints accept Bearer tokens (no cookies
+  // → CSRF not applicable) and session-based admin UI calls are constrained by
+  // SameSite=strict cookies set in AuthService.
+  security: {
+    // Our core has its own rate-limiter (services/RateLimiterService.ts) with
+    // per-user + per-api-key buckets. Disable the lruCache one to avoid double
+    // counting.
+    rateLimiter: false,
+    // We don't run untrusted user forms; disable to prevent false positives on
+    // admin UI POSTs that legitimately include HTML in audit-log metadata.
+    xssValidator: false,
+    corsHandler: {
+      origin: process.env.CHECKBOT_RAG_PUBLIC_URL ?? "*",
+      methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
+      preflight: { statusCode: 204 },
+    },
+    headers: {
+      // Admin UI is served from the same origin; never embedded elsewhere.
+      xFrameOptions: "DENY",
+      strictTransportSecurity: {
+        maxAge: 15552000,
+        includeSubdomains: true,
+      },
+      permissionsPolicy: {
+        camera: [],
+        microphone: [],
+        geolocation: [],
+        fullscreen: [],
+        "display-capture": [],
+      },
+    },
+  },
 
   i18n: {
     locales: [
