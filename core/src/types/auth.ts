@@ -66,6 +66,19 @@ export interface AuditLogEntry {
 }
 
 /**
+ * The HTTP surface a request arrived on. Threaded into audit-log entries so
+ * operators can distinguish "user X did Y via the admin UI" from "user X did Y
+ * via an MCP tool call" or "an API client did Y" — crucial for forensics when
+ * an API key is leaked.
+ *
+ * - 'session' — Admin UI / cookie-based session
+ * - 'rest'    — Bearer-token request on /api/*
+ * - 'mcp'     — Bearer-token request on /mcp
+ * - 'system'  — Server-initiated (bootstrap, cron, migrations)
+ */
+export type ActorSource = "session" | "rest" | "mcp" | "system";
+
+/**
  * The actor performing a mutating operation. Used for audit logging and
  * permission checks. `null` represents system actions (e.g. bootstrap).
  */
@@ -74,6 +87,7 @@ export type Actor =
       type: "user";
       userId: string;
       permissions: string[];
+      source?: ActorSource;
     }
-  | { type: "system" }
+  | { type: "system"; source?: ActorSource }
   | null;

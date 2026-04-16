@@ -1,5 +1,5 @@
 import { db } from "./DatabaseService.js";
-import type { AuditLogEntry } from "../types/auth.js";
+import type { ActorSource, AuditLogEntry } from "../types/auth.js";
 
 /**
  * Action strings used across the codebase. Kept as a union for type safety
@@ -19,6 +19,7 @@ export const AUDIT_ACTIONS = [
   "api_key.update",
   "api_key.revoke",
   "api_key.delete",
+  "api_key.access_denied",
   "bootstrap.admin_created",
   "bootstrap.admin_updated",
   "bootstrap.admin_deactivated",
@@ -36,6 +37,13 @@ export interface LogOptions {
   targetId?: string | null;
   metadata?: Record<string, unknown>;
   ipAddress?: string | null;
+  /**
+   * HTTP surface the action originated on. Stored in metadata under
+   * `actorSource` (intentionally not plain `source` to avoid clobbering
+   * `metadata.source` used by user.create to record env_bootstrap origin).
+   * Operators can filter with `metadata->>'actorSource' = 'mcp'`.
+   */
+  source?: ActorSource;
 }
 
 export interface AuditLogFilter {
@@ -91,6 +99,15 @@ export class AuditLogService {
    */
   async log(action: AuditAction | string, opts: LogOptions = {}): Promise<void> {
     try {
+      // Merge the `source` shorthand into metadata under `actorSource`. Keeping
+      // it out of opts.metadata deliberately so the explicit field is the
+      // canonical place call sites set it, and using a distinct key avoids
+      // colliding with `metadata.source` which some entries use for unrelated
+      // user-origin info (env_bootstrap vs manual).
+      const metadata: Record<string, unknown> = { ...(opts.metadata ?? {}) };
+      if (opts.source !== undefined) {
+        metadata.actorSource = opts.source;
+      }
       await db.query(
         `INSERT INTO audit_log (user_id, action, target_type, target_id, metadata, ip_address)
          VALUES ($1, $2, $3, $4, $5, $6)`,
@@ -99,7 +116,7 @@ export class AuditLogService {
           action,
           opts.targetType ?? null,
           opts.targetId ?? null,
-          JSON.stringify(opts.metadata ?? {}),
+          JSON.stringify(metadata),
           opts.ipAddress ?? null,
         ]
       );

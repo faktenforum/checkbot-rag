@@ -42,6 +42,36 @@ describe.skipIf(!dbAvailable)("AuditLogService (db)", () => {
     expect(entries[0]!.userId).toBeNull();
   });
 
+  it("stores source option under metadata.actorSource", async () => {
+    await auditLogService.log("user.create", {
+      source: "mcp",
+      metadata: { custom: "value" },
+    });
+    const { entries } = await auditLogService.list({ action: "user.create" });
+    expect(entries).toHaveLength(1);
+    expect(entries[0]!.metadata).toEqual({ custom: "value", actorSource: "mcp" });
+  });
+
+  it("omits actorSource from metadata when source is not set", async () => {
+    await auditLogService.log("user.create", { metadata: { foo: "bar" } });
+    const { entries } = await auditLogService.list({ action: "user.create" });
+    expect(entries).toHaveLength(1);
+    expect(entries[0]!.metadata).toEqual({ foo: "bar" });
+  });
+
+  it("does not clobber a caller-supplied metadata.source (uses actorSource key)", async () => {
+    await auditLogService.log("user.create", {
+      source: "rest",
+      metadata: { source: "env_bootstrap" },
+    });
+    const { entries } = await auditLogService.list({ action: "user.create" });
+    expect(entries).toHaveLength(1);
+    expect(entries[0]!.metadata).toEqual({
+      source: "env_bootstrap",
+      actorSource: "rest",
+    });
+  });
+
   it("paginates list results with offset and limit", async () => {
     for (let i = 0; i < 10; i++) {
       await auditLogService.log("auth.login", { metadata: { n: i } });

@@ -1,4 +1,4 @@
-import type { ApiKey, Session, User } from "@checkbot/core";
+import type { ActorSource, ApiKey, Session, User } from "@checkbot/core";
 
 declare module "h3" {
   interface H3EventContext {
@@ -12,5 +12,7 @@ declare module "h3" {
     apiKey?: ApiKey;
     /** user.permissions ∩ key.permissions; set when authenticated via Bearer */
     effectivePermissions?: string[];
+    /** HTTP surface this request came in on. Set by 04.api-auth.ts. */
+    actorSource?: ActorSource;
   }
 }

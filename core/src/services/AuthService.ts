@@ -78,6 +78,7 @@ export class AuthService {
 
     if (!withHash || !passwordOk || !withHash.active || !withHash.passwordHash) {
       await auditLogService.log("auth.login_failed", {
+        source: "session",
         metadata: { email },
         ipAddress: ip,
       });
@@ -103,6 +104,7 @@ export class AuthService {
 
     await auditLogService.log("auth.login", {
       userId: user.id,
+      source: "session",
       targetType: "user",
       targetId: user.id,
       ipAddress: ip,
@@ -123,6 +125,7 @@ export class AuthService {
     if (rows[0]) {
       await auditLogService.log("auth.logout", {
         userId: rows[0].user_id,
+        source: "session",
         ipAddress: ip,
       });
     }

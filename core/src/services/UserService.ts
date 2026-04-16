@@ -1,6 +1,7 @@
 import { db } from "./DatabaseService.js";
 import { auditLogService } from "./AuditLogService.js";
 import { passwordService } from "../auth/passwordService.js";
+import { actorSource, actorUserId } from "../utils/actor.js";
 import { hashApiKey } from "../utils/keyHasher.js";
 import { config } from "../config/index.js";
 import type { Actor, User, UserType, UserSource, UserWithPasswordHash } from "../types/auth.js";
@@ -75,10 +76,6 @@ function rowToUserWithHash(row: UserRow): UserWithPasswordHash {
 
 const USER_COLS = `id, user_type, name, email, password_hash, permissions,
   source, env_var_name, active, last_login_at, created_at, updated_at, created_by`;
-
-function actorUserId(actor: Actor): string | null {
-  return actor && actor.type === "user" ? actor.userId : null;
-}
 
 export class UserService {
   async get(id: string): Promise<User | null> {
@@ -179,6 +176,7 @@ export class UserService {
     const user = rowToUser(rows[0]!);
     await auditLogService.log("user.create", {
       userId: actorUserId(actor),
+      source: actorSource(actor),
       targetType: "user",
       targetId: user.id,
       metadata: {
@@ -231,6 +229,7 @@ export class UserService {
     const user = rowToUser(rows[0]);
     await auditLogService.log("user.update", {
       userId: actorUserId(actor),
+      source: actorSource(actor),
       targetType: "user",
       targetId: user.id,
       metadata: { patch },
@@ -261,6 +260,7 @@ export class UserService {
     );
     await auditLogService.log("user.password_reset", {
       userId: actorUserId(actor),
+      source: actorSource(actor),
       targetType: "user",
       targetId: id,
       metadata: { sessionsInvalidated: sessionsKilled ?? 0 },
@@ -275,6 +275,7 @@ export class UserService {
     if (!rowCount) throw new Error(`User ${id} not found`);
     await auditLogService.log("user.deactivate", {
       userId: actorUserId(actor),
+      source: actorSource(actor),
       targetType: "user",
       targetId: id,
     });
@@ -294,6 +295,7 @@ export class UserService {
     await db.query(`DELETE FROM users WHERE id = $1`, [id]);
     await auditLogService.log("user.delete", {
       userId: actorUserId(actor),
+      source: actorSource(actor),
       targetType: "user",
       targetId: id,
     });
@@ -347,6 +349,7 @@ export class UserService {
         );
         await auditLogService.log("bootstrap.admin_deactivated", {
           userId: null,
+          source: "system",
           targetType: "user",
           targetId: existing.id,
         });
@@ -378,6 +381,7 @@ export class UserService {
       );
       await auditLogService.log("bootstrap.admin_created", {
         userId: null,
+        source: "system",
         targetType: "user",
         targetId: inserted[0]!.id,
         metadata: { email: adminEmail },
@@ -399,6 +403,7 @@ export class UserService {
       );
       await auditLogService.log("bootstrap.admin_updated", {
         userId: null,
+        source: "system",
         targetType: "user",
         targetId: existing.id,
       });
@@ -434,6 +439,7 @@ export class UserService {
         );
         await auditLogService.log("bootstrap.service_user_deactivated", {
           userId: null,
+          source: "system",
           targetType: "user",
           targetId: existing.id,
           metadata: { envVarName },
@@ -462,6 +468,7 @@ export class UserService {
       );
       await auditLogService.log("bootstrap.service_user_created", {
         userId: null,
+        source: "system",
         targetType: "user",
         targetId: userId,
         metadata: { envVarName, userName, permissions },
@@ -481,6 +488,7 @@ export class UserService {
       );
       await auditLogService.log("bootstrap.service_user_updated", {
         userId: null,
+        source: "system",
         targetType: "user",
         targetId: existing.id,
         metadata: { envVarName, permissions },
@@ -525,6 +533,7 @@ export class UserService {
       );
       await auditLogService.log("bootstrap.key_rotated", {
         userId: null,
+        source: "system",
         targetType: "api_key",
         targetId: existingKey.id,
         metadata: { envVarName },
