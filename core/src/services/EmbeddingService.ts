@@ -26,6 +26,39 @@ export class EmbeddingService {
     return first;
   }
 
+  // Cheap availability probe for health checks. Fires a single embedding
+  // request with a short timeout and no retries — returns true on success,
+  // false on any failure. Never throws.
+  async probeAvailability(timeoutMs = 2000): Promise<boolean> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const body: Record<string, unknown> = {
+        input: ["ok"],
+        model: this.model,
+      };
+      if (this.dimensions !== 4096) {
+        body.dimensions = this.dimensions;
+      }
+      const response = await fetch(`${this.baseUrl}/embeddings`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.apiKey}`,
+          "HTTP-Referer": "https://faktenforum.org",
+          "X-Title": "Checkbot RAG",
+        },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+      return response.ok;
+    } catch {
+      return false;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
   // Embed multiple texts, batching requests to respect API limits.
   async embedBatch(texts: string[]): Promise<number[][]> {
     const results: number[][] = [];

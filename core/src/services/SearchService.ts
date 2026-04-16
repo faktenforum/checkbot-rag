@@ -8,6 +8,7 @@ import {
 } from "../constants/search.js";
 import type {
   FtsRow,
+  SearchDegradedReason,
   SearchOptions,
   SearchResponse,
   SearchResultClaim,
@@ -86,10 +87,32 @@ export class SearchService {
         ? `AND ${filterConditions.join(" AND ")}`
         : "";
 
-    // Embed the query only when vector search is needed
-    const vectorSql = enableVec
-      ? EmbeddingService.toSql(await this.embeddingService.embedOne(query))
-      : null;
+    // Embed the query only when vector search is needed. If the embedding
+    // provider is unreachable (e.g. quota exhausted, network) we fall back to
+    // FTS-only so lexical search keeps working — unless the caller explicitly
+    // disabled FTS, in which case there is no meaningful fallback and we
+    // rethrow.
+    let vectorSql: string | null = null;
+    let degraded = false;
+    let degradedReason: SearchDegradedReason | undefined;
+
+    if (enableVec) {
+      try {
+        vectorSql = EmbeddingService.toSql(
+          await this.embeddingService.embedOne(query)
+        );
+      } catch (err) {
+        if (!enableFts) {
+          throw err;
+        }
+        degraded = true;
+        degradedReason = "embedding_unavailable";
+        console.warn(
+          "[SearchService] Embedding unavailable — falling back to FTS-only:",
+          err instanceof Error ? err.message : err
+        );
+      }
+    }
 
     // FTS: tsvector computed on the fly per language (no stored fts_vector column).
     const ftsConfig = getFtsConfig(language);
@@ -162,7 +185,12 @@ export class SearchService {
     }).slice(0, limit);
 
     if (ranked.length === 0) {
-      return { query, totalResults: 0, claims: [] };
+      return {
+        query,
+        totalResults: 0,
+        claims: [],
+        ...(degraded && { degraded: true, degradedReason }),
+      };
     }
 
     // Fetch full chunk + claim data for ranked results. ts_headline produces an
@@ -296,6 +324,7 @@ export class SearchService {
       query,
       totalResults: claims.length,
       claims,
+      ...(degraded && { degraded: true, degradedReason }),
     };
   }
 }

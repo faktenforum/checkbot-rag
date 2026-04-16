@@ -72,10 +72,16 @@ export interface SearchResultClaim {
   chunks: SearchResultChunk[];
 }
 
+export type SearchDegradedReason = "embedding_unavailable";
+
 export interface SearchResponse {
   query: string;
   totalResults: number;
   claims: SearchResultClaim[];
+  /** True when the result set is missing a search dimension (vector or FTS). */
+  degraded?: boolean;
+  /** Populated together with `degraded`. Reason codes for monitoring/UI. */
+  degradedReason?: SearchDegradedReason;
 }
 
 /** Internal DB row types for search queries */
