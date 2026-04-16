@@ -43,47 +43,61 @@ export default defineEventHandler(async (event) => {
   const ipKey = `login_ip:${ip}`;
   const emailKey = email ? `login_email:${email}` : null;
 
+  // Consume each bucket in its own try/catch so we know exactly which one
+  // tripped. RateLimiterRes doesn't carry the limiter key, and deriving it
+  // from consumedPoints is ambiguous when the two limits differ.
+  let rejected: { bucket: "login_ip" | "login_email"; retryAfter: number } | null = null;
+
   try {
     await rateLimiterService.consume(
       ipKey,
       config.rateLimiting.loginIpPoints,
       config.rateLimiting.loginIpDurationSec
     );
-    if (emailKey) {
+  } catch (err) {
+    if (err instanceof RateLimiterRes) {
+      rejected = { bucket: "login_ip", retryAfter: Math.ceil(err.msBeforeNext / 1000) };
+    } else {
+      throw err;
+    }
+  }
+
+  if (!rejected && emailKey) {
+    try {
       await rateLimiterService.consume(
         emailKey,
         config.rateLimiting.loginEmailPoints,
         config.rateLimiting.loginEmailDurationSec
       );
+    } catch (err) {
+      if (err instanceof RateLimiterRes) {
+        rejected = { bucket: "login_email", retryAfter: Math.ceil(err.msBeforeNext / 1000) };
+      } else {
+        throw err;
+      }
     }
-  } catch (err) {
-    if (err instanceof RateLimiterRes) {
-      const retryAfter = Math.ceil(err.msBeforeNext / 1000);
-      const bucket = err.consumedPoints >= config.rateLimiting.loginEmailPoints && emailKey
-        ? "login_email"
-        : "login_ip";
+  }
 
-      console.warn("[login-rate-limit] rejected", {
-        ip,
-        email,
-        bucket,
-        retryAfterSeconds: retryAfter,
-      });
+  if (rejected) {
+    console.warn("[login-rate-limit] rejected", {
+      ip,
+      email,
+      bucket: rejected.bucket,
+      retryAfterSeconds: rejected.retryAfter,
+    });
 
-      // Fire-and-forget audit entry — do not block the response on DB write.
-      void auditLogService.log("auth.login_rate_limited", {
-        metadata: { ip, email, bucket },
-        ipAddress: ip,
-      });
+    // Fire-and-forget audit entry — do not block the response on DB write.
+    void auditLogService.log("auth.login_rate_limited", {
+      metadata: { ip, email, bucket: rejected.bucket },
+      ipAddress: ip,
+    });
 
-      setResponseStatus(event, 429);
-      setResponseHeader(event, "Retry-After", retryAfter);
-      setResponseHeader(event, "Content-Type", "application/json");
-      return {
-        error: "Too Many Requests",
-        retryAfterSeconds: retryAfter,
-      };
-    }
-    throw err;
+    setResponseStatus(event, 429);
+    setResponseHeader(event, "Retry-After", rejected.retryAfter);
+    setResponseHeader(event, "Content-Type", "application/json");
+    return {
+      error: "Too Many Requests",
+      retryAfterSeconds: rejected.retryAfter,
+    };
   }
 });
