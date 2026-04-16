@@ -1,5 +1,4 @@
 import { userService } from "@checkbot/core";
-import type { Actor } from "@checkbot/core";
 
 export default defineEventHandler(async (event) => {
   assertPermission(event, "users:write");
@@ -10,8 +9,7 @@ export default defineEventHandler(async (event) => {
     return { error: "Missing id" };
   }
 
-  const user = event.context.user!;
-  const actor: Actor = { type: "user", userId: user.id, permissions: user.permissions };
+  const actor = actorFromEvent(event);
 
   try {
     await userService.delete(id, actor);

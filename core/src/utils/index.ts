@@ -1,3 +1,4 @@
+export * from "./actor.js";
 export * from "./rrf.js";
 export * from "./keyGenerator.js";
 export * from "./keyHasher.js";

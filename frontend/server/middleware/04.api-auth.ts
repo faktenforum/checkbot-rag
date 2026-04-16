@@ -1,4 +1,5 @@
 import { apiKeyService } from "@checkbot/core";
+import type { ActorSource } from "@checkbot/core";
 import {
   defineEventHandler,
   getHeader,
@@ -19,12 +20,25 @@ function isProtectedPath(path: string): boolean {
   return PROTECTED_PREFIXES.some((p) => path === p || path.startsWith(p));
 }
 
+/**
+ * Classify the HTTP surface the request arrived on. Flows into
+ * event.context.actorSource and from there into audit-log entries so
+ * operators can tell an MCP call from a REST call when an API key shows
+ * up in the logs.
+ */
+function resolveSource(event: { path: string; context: { sessionUser?: unknown } }): ActorSource {
+  if (event.context.sessionUser) return "session";
+  if (event.path === "/mcp" || event.path.startsWith("/mcp")) return "mcp";
+  return "rest";
+}
+
 export default defineEventHandler(async (event) => {
   if (!isProtectedPath(event.path)) return;
 
   // Session middleware already resolved a cookie-based user
   if (event.context.sessionUser) {
     event.context.user = event.context.sessionUser;
+    event.context.actorSource = "session";
     return;
   }
 
@@ -52,6 +66,7 @@ export default defineEventHandler(async (event) => {
   event.context.apiKey = authenticated.key;
   event.context.user = authenticated.user;
   event.context.effectivePermissions = authenticated.effectivePermissions;
+  event.context.actorSource = resolveSource(event);
 
   // Fire-and-forget - do not await
   apiKeyService.touchLastUsed(authenticated.key.id);

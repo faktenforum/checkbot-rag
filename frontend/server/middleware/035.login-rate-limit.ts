@@ -88,6 +88,7 @@ export default defineEventHandler(async (event) => {
 
     // Fire-and-forget audit entry — do not block the response on DB write.
     void auditLogService.log("auth.login_rate_limited", {
+      source: "session",
       metadata: { ip, email, bucket: rejected.bucket },
       ipAddress: ip,
     });

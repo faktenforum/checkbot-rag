@@ -1,12 +1,9 @@
 import { userService } from "@checkbot/core";
 import { CreateUserSchema } from "../../../schemas/users";
-import type { Actor } from "@checkbot/core";
 
 export default defineEventHandler(async (event) => {
   assertPermission(event, "users:write");
-
-  const user = event.context.user!;
-  const actor: Actor = { type: "user", userId: user.id, permissions: user.permissions };
+  const actor = actorFromEvent(event);
 
   const body = await readBody(event);
   const parsed = CreateUserSchema.safeParse(body);

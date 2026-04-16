@@ -1,5 +1,6 @@
 import { db } from "./DatabaseService.js";
 import { auditLogService } from "./AuditLogService.js";
+import { actorSource, actorUserId } from "../utils/actor.js";
 import { generateApiKey } from "../utils/keyGenerator.js";
 import { hashApiKey } from "../utils/keyHasher.js";
 import {
@@ -146,10 +147,6 @@ function coerceUserDates(row: UserRow): UserRow {
     created_at: toDate(row.created_at) as Date,
     updated_at: toDate(row.updated_at) as Date,
   };
-}
-
-function actorUserId(actor: Actor): string | null {
-  return actor && actor.type === "user" ? actor.userId : null;
 }
 
 function actorPermissions(actor: Actor): string[] {
@@ -351,6 +348,7 @@ export class ApiKeyService {
     const record = rowToApiKey(rows[0]!);
     await auditLogService.log("api_key.create", {
       userId: actorUserId(actor),
+      source: actorSource(actor),
       targetType: "api_key",
       targetId: record.id,
       metadata: {
@@ -441,6 +439,7 @@ export class ApiKeyService {
     const record = rowToApiKey(rows[0]);
     await auditLogService.log("api_key.update", {
       userId: actorUserId(actor),
+      source: actorSource(actor),
       targetType: "api_key",
       targetId: record.id,
       metadata: { patch },
@@ -457,6 +456,7 @@ export class ApiKeyService {
     this.invalidateById(id);
     await auditLogService.log("api_key.revoke", {
       userId: actorUserId(actor),
+      source: actorSource(actor),
       targetType: "api_key",
       targetId: id,
     });
@@ -470,6 +470,7 @@ export class ApiKeyService {
     this.invalidateById(id);
     await auditLogService.log("api_key.delete", {
       userId: actorUserId(actor),
+      source: actorSource(actor),
       targetType: "api_key",
       targetId: id,
     });

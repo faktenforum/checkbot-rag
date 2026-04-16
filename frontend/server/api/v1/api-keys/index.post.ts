@@ -1,6 +1,5 @@
 import { apiKeyService, hasPermission } from "@checkbot/core";
 import { CreateApiKeySchema } from "../../../schemas/apiKeys";
-import type { Actor } from "@checkbot/core";
 
 export default defineEventHandler(async (event) => {
   const requestUser = event.context.user;
@@ -23,9 +22,11 @@ export default defineEventHandler(async (event) => {
     return { error: "Cannot create keys for other users" };
   }
 
-  const actor: Actor = {
-    type: "user",
-    userId: requestUser.id,
+  // Use effective permissions (user ∩ key) as actor perms when creating via
+  // Bearer-token auth, so a key can't issue another key with broader rights
+  // than itself. Fall back to user permissions when authed via session.
+  const actor = {
+    ...actorFromEvent(event),
     permissions: event.context.effectivePermissions ?? requestUser.permissions,
   };
 

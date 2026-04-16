@@ -1,6 +1,5 @@
 import { apiKeyService, hasPermission } from "@checkbot/core";
 import { UpdateApiKeySchema } from "../../../schemas/apiKeys";
-import type { Actor } from "@checkbot/core";
 
 export default defineEventHandler(async (event) => {
   const requestUser = event.context.user;
@@ -34,9 +33,8 @@ export default defineEventHandler(async (event) => {
     return { error: "Validation error", details: parsed.error.flatten() };
   }
 
-  const actor: Actor = {
-    type: "user",
-    userId: requestUser.id,
+  const actor = {
+    ...actorFromEvent(event),
     permissions: event.context.effectivePermissions ?? requestUser.permissions,
   };
 

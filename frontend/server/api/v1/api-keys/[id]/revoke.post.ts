@@ -1,5 +1,4 @@
 import { apiKeyService, hasPermission } from "@checkbot/core";
-import type { Actor } from "@checkbot/core";
 
 export default defineEventHandler(async (event) => {
   const requestUser = event.context.user;
@@ -25,8 +24,7 @@ export default defineEventHandler(async (event) => {
     return { error: "Forbidden" };
   }
 
-  const actor: Actor = { type: "user", userId: requestUser.id, permissions: requestUser.permissions };
-  await apiKeyService.revoke(id, actor);
+  await apiKeyService.revoke(id, actorFromEvent(event));
   setResponseStatus(event, 204);
   return null;
 });
