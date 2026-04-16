@@ -1,12 +1,15 @@
 import promClient, { Counter } from "prom-client";
 
-// Shared default Prometheus registry used by /api/metrics endpoint.
+// Shared default Prometheus registry used by the /metrics endpoint.
 // prom-client de-dupes by name on registration, so calling the module in
 // multiple places (hot reload, multiple tests) doesn't throw.
 
 // Collect node-level defaults (memory, cpu, event loop lag) — low-cardinality,
-// valuable for capacity planning and detecting hangs.
-if (!promClient.register.getSingleMetric("process_cpu_seconds_total")) {
+// valuable for capacity planning and detecting hangs. The guard uses the
+// prefixed name because `prefix` is applied to every default metric; without
+// it the check would never match and the collector would re-register on hot
+// reload.
+if (!promClient.register.getSingleMetric("checkbot_rag_process_cpu_seconds_total")) {
   promClient.collectDefaultMetrics({ prefix: "checkbot_rag_" });
 }
 
