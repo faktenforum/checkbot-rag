@@ -9,7 +9,8 @@
     "mcp"
   ],
   "scripts": {
-    "build": "bun run --cwd core build && bun run --cwd mcp build && bun run --cwd frontend build",
+    "build": "bun run --cwd core build && bun run --cwd mcp build",
+    "build:all": "bun run --cwd core build && bun run --cwd mcp build && bun run --cwd frontend build",
     "check": "bun run --cwd core check && bun run --cwd mcp check && bun run --cwd frontend check",
     "test": "bun test",
     "dbmate:new": "docker compose run --rm checkbot-rag-dbmate new",
