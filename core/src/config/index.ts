@@ -61,6 +61,12 @@ const configSchema = z.object({
     defaultDurationSec: z.coerce.number().default(60),
     searchPoints: z.coerce.number().default(30),
     importPoints: z.coerce.number().default(10),
+    // Login brute-force defense: applied BEFORE authentication, so limits must
+    // be keyed by IP and email rather than user id.
+    loginIpPoints: z.coerce.number().default(10),
+    loginIpDurationSec: z.coerce.number().default(900),
+    loginEmailPoints: z.coerce.number().default(5),
+    loginEmailDurationSec: z.coerce.number().default(900),
   }),
 
   // Faktenforum integration: URL and API key for pulling claims via the export endpoint
@@ -122,6 +128,10 @@ function loadConfig() {
       defaultDurationSec: process.env.CHECKBOT_RAG_RATE_LIMIT_DEFAULT_DURATION_SEC,
       searchPoints: process.env.CHECKBOT_RAG_RATE_LIMIT_SEARCH_POINTS,
       importPoints: process.env.CHECKBOT_RAG_RATE_LIMIT_IMPORT_POINTS,
+      loginIpPoints: process.env.CHECKBOT_RAG_RATE_LIMIT_LOGIN_IP_POINTS,
+      loginIpDurationSec: process.env.CHECKBOT_RAG_RATE_LIMIT_LOGIN_IP_DURATION_SEC,
+      loginEmailPoints: process.env.CHECKBOT_RAG_RATE_LIMIT_LOGIN_EMAIL_POINTS,
+      loginEmailDurationSec: process.env.CHECKBOT_RAG_RATE_LIMIT_LOGIN_EMAIL_DURATION_SEC,
     },
 
     faktenforum: {
