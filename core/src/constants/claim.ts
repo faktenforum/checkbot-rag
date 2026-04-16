@@ -2,7 +2,7 @@ export const CLAIM_STATUS_VALUES = [
   "submitted",
   "accepted",
   "observed",
-  "stale",
+  "discarded",
   "spam",
   "rejected",
   "checked",
