@@ -1,6 +1,7 @@
 import { authService } from "@checkbot/core";
 import { getRequestIP, setCookie } from "h3";
 import { LoginSchema } from "../../../schemas/auth";
+import { loginTotal } from "../../../utils/metrics";
 
 const SESSION_COOKIE = "checkbot_session";
 const COOKIE_MAX_AGE = 30 * 24 * 60 * 60; // 30 days max lifetime
@@ -21,6 +22,7 @@ export default defineEventHandler(async (event) => {
   try {
     result = await authService.login(email, password, ip, userAgent);
   } catch {
+    loginTotal.inc({ result: "failed" });
     setResponseStatus(event, 401);
     return { error: "Invalid email or password" };
   }
@@ -33,6 +35,7 @@ export default defineEventHandler(async (event) => {
     secure: process.env.NODE_ENV === "production",
   });
 
+  loginTotal.inc({ result: "success" });
   setResponseStatus(event, 200);
   return { user: result.user };
 });
