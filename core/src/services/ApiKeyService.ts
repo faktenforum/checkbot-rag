@@ -164,7 +164,12 @@ interface CacheEntry {
   expiresAt: number;
 }
 
-const CACHE_TTL_MS = 30_000;
+// Short TTL so revocation via API propagates quickly without depending on
+// cache invalidation. update/revoke/delete call invalidateById() to zero
+// the entry immediately on THIS instance; the TTL bounds how long a stale
+// entry lingers on OTHER instances if we ever run multi-replica (no cache
+// coordination today, so replicas are independent).
+const CACHE_TTL_MS = 5_000;
 
 export class ApiKeyService {
   private cache = new Map<string, CacheEntry>();
@@ -174,8 +179,9 @@ export class ApiKeyService {
    * expired, or owned by an inactive user. The returned object carries the
    * effective permissions (user ∩ key) for downstream authz.
    *
-   * Results are cached in-memory for 30s to keep the hot path cheap.
-   * Cache is invalidated on update/revoke/delete of the same key.
+   * Results are cached in-memory for 5s to keep the hot path cheap.
+   * Cache is invalidated on update/revoke/delete of the same key so revocation
+   * takes effect immediately on the instance that processed it.
    */
   async validate(rawKey: string): Promise<AuthenticatedApiKey | null> {
     const keyHash = hashApiKey(rawKey);

@@ -184,6 +184,41 @@ describe.skipIf(!dbAvailable)("UserService CRUD", () => {
     expect(await passwordService.verify(withHash!.passwordHash!, "NewPassword2")).toBe(true);
   });
 
+  it("updatePassword invalidates all existing sessions for the user", async () => {
+    const user = await userService.create(
+      {
+        userType: "human",
+        name: "Bob",
+        email: "bob@example.com",
+        password: "OldPassword1",
+        permissions: [],
+      },
+      SYSTEM_ACTOR
+    );
+
+    // Simulate two active sessions from different devices.
+    await db.query(
+      `INSERT INTO sessions (user_id, session_token_hash, expires_at)
+       VALUES ($1, 'hash-1', NOW() + INTERVAL '7 days'),
+              ($1, 'hash-2', NOW() + INTERVAL '7 days')`,
+      [user.id]
+    );
+
+    const before = await db.query<{ count: string }>(
+      `SELECT COUNT(*)::text AS count FROM sessions WHERE user_id = $1`,
+      [user.id]
+    );
+    expect(Number(before.rows[0]!.count)).toBe(2);
+
+    await userService.updatePassword(user.id, "NewPassword2", SYSTEM_ACTOR);
+
+    const after = await db.query<{ count: string }>(
+      `SELECT COUNT(*)::text AS count FROM sessions WHERE user_id = $1`,
+      [user.id]
+    );
+    expect(Number(after.rows[0]!.count)).toBe(0);
+  });
+
   it("updatePassword rejects service users", async () => {
     const user = await userService.create(
       { userType: "service", name: "svc", permissions: [] },
