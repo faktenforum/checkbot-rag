@@ -40,8 +40,10 @@ const configSchema = z.object({
 
   // Authentication + session handling
   auth: z.object({
-    // HMAC pepper for session tokens. Required in production - in test/dev a
-    // weak default is used if unset. See sessionToken.ts for usage.
+    // HMAC pepper for session tokens. See sessionToken.ts for usage. In test/dev
+    // a known-weak default is used so the app runs without explicit setup; in
+    // production the default is rejected (see postload check below) so there is
+    // no way to deploy with a predictable secret by accident.
     sessionSecret: z.string().default("dev-insecure-session-secret-change-me-please!!"),
     sessionLifetimeDays: z.coerce.number().default(7),
     sessionMaxLifetimeDays: z.coerce.number().default(30),
@@ -145,6 +147,18 @@ function loadConfig() {
     console.error("Invalid configuration:", z.treeifyError(result.error));
     process.exit(1);
   }
+
+  // Production guard: reject the known-weak default session secret. If
+  // CHECKBOT_RAG_SESSION_SECRET is missing in prod the default would silently
+  // be used and anyone could forge sessions — hard fail instead.
+  const DEV_DEFAULT_SECRET = "dev-insecure-session-secret-change-me-please!!";
+  if (process.env.NODE_ENV === "production" && result.data.auth.sessionSecret === DEV_DEFAULT_SECRET) {
+    console.error(
+      "FATAL: CHECKBOT_RAG_SESSION_SECRET must be set in production. Refusing to start with the development default."
+    );
+    process.exit(1);
+  }
+
   return result.data;
 }
 

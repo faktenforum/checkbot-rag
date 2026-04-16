@@ -252,10 +252,18 @@ export class UserService {
     if (!rowCount) {
       throw new Error(`Human user ${id} not found`);
     }
+    // Invalidate all existing sessions after a password change. Covers the
+    // "admin rotates my password because credentials leaked" case — without
+    // this, a compromised session would survive the rotation.
+    const { rowCount: sessionsKilled } = await db.query(
+      `DELETE FROM sessions WHERE user_id = $1`,
+      [id]
+    );
     await auditLogService.log("user.password_reset", {
       userId: actorUserId(actor),
       targetType: "user",
       targetId: id,
+      metadata: { sessionsInvalidated: sessionsKilled ?? 0 },
     });
   }
 

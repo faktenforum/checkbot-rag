@@ -1,5 +1,10 @@
 import tailwindcss from "@tailwindcss/vite";
 
+// CORS origin. In dev we fall back to "*"; in production the server-startup
+// plugin (server/plugins/00.config-guard.ts) refuses to boot without
+// CHECKBOT_RAG_PUBLIC_URL set, so reaching runtime with "*" here is impossible.
+const corsOrigin = process.env.CHECKBOT_RAG_PUBLIC_URL?.trim() || "*";
+
 export default defineNuxtConfig({
   devtools: { enabled: true },
 
@@ -21,8 +26,22 @@ export default defineNuxtConfig({
     // We don't run untrusted user forms; disable to prevent false positives on
     // admin UI POSTs that legitimately include HTML in audit-log metadata.
     xssValidator: false,
+    // Reject oversized bodies. 10 MB covers the largest legitimate request
+    // (a 500-claim import batch, ~2-5 KB/claim) with headroom. Anything beyond
+    // is either a bug or an attempt to exhaust memory.
+    requestSizeLimiter: {
+      maxRequestSizeInBytes: 10_000_000,
+      maxUploadFileRequestInBytes: 10_000_000,
+      throwError: true,
+    },
+    // Only allow the HTTP methods we actually use. Blocks drive-by scanners
+    // probing TRACE/CONNECT/OPTIONS-only endpoints.
+    allowedMethodsRestricter: {
+      methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      throwError: true,
+    },
     corsHandler: {
-      origin: process.env.CHECKBOT_RAG_PUBLIC_URL ?? "*",
+      origin: corsOrigin,
       methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
       preflight: { statusCode: 204 },
     },
