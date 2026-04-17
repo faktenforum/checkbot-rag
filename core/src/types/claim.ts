@@ -79,7 +79,7 @@ export interface ClaimJson {
   status: ClaimStatus;
   submitterNotes: string | null;
   shortId: string;
-  processId: number;
+  processId: number | null;
   synopsis: string | null;
   ratingLabelName: string | null;
   ratingStatement: string | null;

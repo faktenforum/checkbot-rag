@@ -15,7 +15,7 @@ const ClaimJsonSchema = z
     id: z.string(),
     status: z.string(),
     shortId: z.string(),
-    processId: z.number(),
+    processId: z.number().nullable(),
     createdAt: z.string(),
     createdBy: z.string(),
     internal: z.boolean(),
