@@ -27,6 +27,7 @@ export const AUDIT_ACTIONS = [
   "bootstrap.service_user_updated",
   "bootstrap.service_user_deactivated",
   "bootstrap.key_rotated",
+  "claim.delete",
 ] as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
