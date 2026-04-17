@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "bun:test";
 import { db, dbAvailable } from "./helpers/db";
-import { searchService } from "../SearchService";
+import { SearchService, searchService } from "../SearchService";
 
 async function resetClaimsAndChunks(): Promise<void> {
   await db.query(`TRUNCATE TABLE chunks, claims RESTART IDENTITY CASCADE`);
@@ -126,3 +126,116 @@ describe.skipIf(!dbAvailable)("SearchService.search — FTS highlighting", () =>
     expect(claim.createdAtSource).toBe("2026-04-15T10:00:00.000Z");
   });
 });
+
+// Minimal test double that replaces the real EmbeddingService to simulate an
+// unreachable embedding provider without touching the network. Only the two
+// methods the SearchService actually calls are stubbed.
+function makeFailingEmbeddingService(): unknown {
+  return {
+    embedOne: async () => {
+      throw new Error("Embedding API error 503: Service Unavailable");
+    },
+  };
+}
+
+describe.skipIf(!dbAvailable)(
+  "SearchService.search — FTS fallback when embedding fails",
+  () => {
+    beforeEach(async () => {
+      await resetClaimsAndChunks();
+    });
+
+    it("falls back to FTS-only when embedding throws", async () => {
+      await insertClaim({
+        externalId: "44444444-4444-4444-4444-444444444444",
+        synopsis: "Claim about climate",
+        chunkContent:
+          "Temperatures have risen measurably over the past decade in Europe.",
+        language: "en",
+      });
+
+      const svc = new SearchService();
+      (svc as unknown as { embeddingService: unknown }).embeddingService =
+        makeFailingEmbeddingService();
+
+      const result = await svc.search({
+        query: "Europe",
+        enableVec: true,
+        enableFts: true,
+        language: "en",
+        limit: 5,
+      });
+
+      expect(result.degraded).toBe(true);
+      expect(result.degradedReason).toBe("embedding_unavailable");
+      expect(result.claims).toHaveLength(1);
+      expect(result.claims[0]!.chunks[0]!.ftsScore).toBeGreaterThan(0);
+    });
+
+    it("returns empty-but-degraded result set when no FTS match exists", async () => {
+      await insertClaim({
+        externalId: "55555555-5555-5555-5555-555555555555",
+        synopsis: "Unrelated topic",
+        chunkContent: "This text does not contain the search keyword at all.",
+        language: "en",
+      });
+
+      const svc = new SearchService();
+      (svc as unknown as { embeddingService: unknown }).embeddingService =
+        makeFailingEmbeddingService();
+
+      const result = await svc.search({
+        query: "unobtanium",
+        enableVec: true,
+        enableFts: true,
+        language: "en",
+        limit: 5,
+      });
+
+      expect(result.claims).toHaveLength(0);
+      expect(result.degraded).toBe(true);
+      expect(result.degradedReason).toBe("embedding_unavailable");
+    });
+
+    it("rethrows when FTS is disabled and embedding fails (no fallback possible)", async () => {
+      const svc = new SearchService();
+      (svc as unknown as { embeddingService: unknown }).embeddingService =
+        makeFailingEmbeddingService();
+
+      await expect(
+        svc.search({
+          query: "anything",
+          enableVec: true,
+          enableFts: false,
+          language: "en",
+          limit: 5,
+        })
+      ).rejects.toThrow(/Embedding API error/);
+    });
+
+    it("omits degraded flag when embedding succeeds (normal path)", async () => {
+      // Use the singleton which has a real EmbeddingService; but disable Vec
+      // via the flag to avoid actually calling the embedding API. The flag
+      // means we never hit the try/catch, so no degraded flag should be set.
+      await insertClaim({
+        externalId: "66666666-6666-6666-6666-666666666666",
+        synopsis: "Normal path",
+        chunkContent:
+          "This chunk contains the word normalpath for FTS matching.",
+        language: "en",
+      });
+
+      const result = await searchService.search({
+        query: "normalpath",
+        enableVec: false,
+        enableFts: true,
+        language: "en",
+        limit: 5,
+      });
+
+      expect(result.degraded).toBeUndefined();
+      expect(result.degradedReason).toBeUndefined();
+      expect(result.claims).toHaveLength(1);
+    });
+  }
+);
