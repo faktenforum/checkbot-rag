@@ -37,6 +37,18 @@ export class ClaimsService {
   }
 
   /**
+   * Delete a claim by external ID or short ID. Chunks are removed
+   * automatically via ON DELETE CASCADE. Returns true if a row was deleted.
+   */
+  async delete(identifier: string): Promise<boolean> {
+    const { rowCount } = await db.query(
+      `DELETE FROM public.claims WHERE external_id::text = $1 OR short_id = $1`,
+      [identifier]
+    );
+    return (rowCount ?? 0) > 0;
+  }
+
+  /**
    * List claims with optional filters and pagination.
    */
   async list(filters: ListClaimsFilters): Promise<ListClaimsResult> {
