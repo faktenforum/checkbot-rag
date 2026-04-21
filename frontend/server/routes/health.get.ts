@@ -1,4 +1,4 @@
-import { db, EmbeddingService } from "@checkbot/core";
+import { config, db, EmbeddingService } from "@checkbot/core";
 
 // Default: fast DB-only probe. Scrapers hit this frequently, so we don't
 // contact the embedding provider by default (would consume quota and add
@@ -20,6 +20,16 @@ export default defineEventHandler(async (event) => {
     return dbOk
       ? { status: "ok", db: "ok" }
       : { status: "down", db: "unreachable" };
+  }
+
+  // Embedding not configured → report as "disabled", not "unreachable".
+  // Search still works via FTS; status is degraded but expected.
+  if (!config.embedding.apiKey) {
+    return {
+      status: !dbOk ? "down" : "degraded",
+      db: dbOk ? "ok" : "unreachable",
+      embeddings: "disabled",
+    };
   }
 
   const embeddingService = new EmbeddingService();

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from "bun:test";
 import { db, dbAvailable } from "./helpers/db";
 import { SearchService, searchService } from "../SearchService";
+import { config } from "../../config";
 
 async function resetClaimsAndChunks(): Promise<void> {
   await db.query(`TRUNCATE TABLE chunks, claims RESTART IDENTITY CASCADE`);
@@ -236,6 +237,75 @@ describe.skipIf(!dbAvailable)(
       expect(result.degraded).toBeUndefined();
       expect(result.degradedReason).toBeUndefined();
       expect(result.claims).toHaveLength(1);
+    });
+  }
+);
+
+describe.skipIf(!dbAvailable)(
+  "SearchService.search — embedding API key not configured",
+  () => {
+    beforeEach(async () => {
+      await resetClaimsAndChunks();
+    });
+
+    it("skips vector search and reports degraded when apiKey is empty", async () => {
+      await insertClaim({
+        externalId: "77777777-7777-7777-7777-777777777777",
+        synopsis: "Claim about renewables",
+        chunkContent:
+          "Solar panels installed this year outpaced coal plants in output worldwide.",
+        language: "en",
+      });
+
+      // Spy on the embedding service: it must NOT be called when apiKey is empty.
+      const svc = new SearchService();
+      let embedOneCalled = false;
+      (svc as unknown as { embeddingService: unknown }).embeddingService = {
+        embedOne: async () => {
+          embedOneCalled = true;
+          throw new Error("should not be called");
+        },
+      };
+
+      const originalApiKey = config.embedding.apiKey;
+      (config.embedding as { apiKey: string }).apiKey = "";
+      try {
+        const result = await svc.search({
+          query: "Solar",
+          enableVec: true,
+          enableFts: true,
+          language: "en",
+          limit: 5,
+        });
+
+        expect(embedOneCalled).toBe(false);
+        expect(result.degraded).toBe(true);
+        expect(result.degradedReason).toBe("embedding_unavailable");
+        expect(result.claims).toHaveLength(1);
+        expect(result.claims[0]!.chunks[0]!.ftsScore).toBeGreaterThan(0);
+      } finally {
+        (config.embedding as { apiKey: string }).apiKey = originalApiKey;
+      }
+    });
+
+    it("throws when apiKey is empty and FTS is explicitly disabled", async () => {
+      const svc = new SearchService();
+
+      const originalApiKey = config.embedding.apiKey;
+      (config.embedding as { apiKey: string }).apiKey = "";
+      try {
+        await expect(
+          svc.search({
+            query: "anything",
+            enableVec: true,
+            enableFts: false,
+            language: "en",
+            limit: 5,
+          })
+        ).rejects.toThrow(/Embedding API key is not configured/);
+      } finally {
+        (config.embedding as { apiKey: string }).apiKey = originalApiKey;
+      }
     });
   }
 );
