@@ -34,11 +34,28 @@ export class SearchService {
       status,
       internal,
       enableFts = true,
-      enableVec = true,
     } = options;
+    let { enableVec = true } = options;
 
     if (language === "auto") {
       throw new Error(AUTO_LANGUAGE_ERROR_MESSAGE);
+    }
+
+    // Skip vector search entirely when no embedding API key is configured.
+    // Avoids a guaranteed 401 roundtrip per query; FTS handles the search
+    // alone. degraded flag signals to callers that only lexical match ran.
+    let degraded = false;
+    let degradedReason: SearchDegradedReason | undefined;
+
+    if (enableVec && !config.embedding.apiKey) {
+      if (!enableFts) {
+        throw new Error(
+          "Embedding API key is not configured and FTS is disabled — cannot perform search"
+        );
+      }
+      enableVec = false;
+      degraded = true;
+      degradedReason = "embedding_unavailable";
     }
 
     if (!enableFts && !enableVec) {
@@ -93,8 +110,6 @@ export class SearchService {
     // disabled FTS, in which case there is no meaningful fallback and we
     // rethrow.
     let vectorSql: string | null = null;
-    let degraded = false;
-    let degradedReason: SearchDegradedReason | undefined;
 
     if (enableVec) {
       try {
