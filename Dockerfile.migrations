@@ -1,0 +1,6 @@
+# Migrations-only image used by the prod compose's search-dbmate service.
+# Carries the dbmate binary plus this repo's migration SQL so the prod stack
+# doesn't need a source checkout to run schema changes.
+FROM amacneil/dbmate:latest
+
+COPY core/db /db

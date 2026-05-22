@@ -12,6 +12,14 @@ jobs:
     permissions:
       contents: read
       packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: checkbot-rag
+            dockerfile: ./Dockerfile
+          - image: checkbot-rag-migrations
+            dockerfile: ./Dockerfile.migrations
 
     steps:
       - name: Checkout repository
@@ -35,7 +43,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/faktenforum/checkbot-rag
+          images: ghcr.io/faktenforum/${{ matrix.image }}
           # Tag conventions match faktenforum/faktenforum (see deploy-dev.yml + release.yml):
           # - main push        -> <short-commit-hash> + latest-dev
           # - release tag (v*) -> <version> (vX.Y.Z) + latest
@@ -50,10 +58,10 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile
+          file: ${{ matrix.dockerfile }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}
           platforms: linux/amd64
