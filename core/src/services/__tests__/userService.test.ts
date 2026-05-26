@@ -364,10 +364,10 @@ describe.skipIf(!dbAvailable)("UserService.bootstrapFromEnv", () => {
   beforeEach(async () => {
     await resetAuthTables();
     // Clear env vars so each test controls them explicitly
-    delete process.env.CHECKBOT_RAG_BOOTSTRAP_ADMIN_EMAIL;
-    delete process.env.CHECKBOT_RAG_BOOTSTRAP_ADMIN_PASSWORD;
-    delete process.env.CHECKBOT_RAG_BOOTSTRAP_FAKTENFORUM_KEY;
-    delete process.env.CHECKBOT_RAG_BOOTSTRAP_MCP_KEY;
+    delete process.env.SEARCH_BOOTSTRAP_ADMIN_EMAIL;
+    delete process.env.SEARCH_BOOTSTRAP_ADMIN_PASSWORD;
+    delete process.env.SEARCH_BOOTSTRAP_FAKTENFORUM_KEY;
+    delete process.env.SEARCH_BOOTSTRAP_MCP_KEY;
   });
 
   // The config is frozen at import time, so we can't directly mutate env
@@ -396,7 +396,7 @@ describe.skipIf(!dbAvailable)("UserService.bootstrapFromEnv", () => {
     const { rows: userRows } = await db.query<{ id: string }>(
       `INSERT INTO users (user_type, name, permissions, source, env_var_name, active)
        VALUES ('service', 'faktenforum', ARRAY['claims:read']::text[],
-               'env_bootstrap', 'CHECKBOT_RAG_BOOTSTRAP_FAKTENFORUM_KEY', false)
+               'env_bootstrap', 'SEARCH_BOOTSTRAP_FAKTENFORUM_KEY', false)
        RETURNING id`
     );
     const userId = userRows[0]!.id;
@@ -415,7 +415,7 @@ describe.skipIf(!dbAvailable)("UserService.bootstrapFromEnv", () => {
     expect(before.users).toHaveLength(1);
     expect(before.users[0]!.active).toBe(false);
     expect(before.users[0]!.envVarName).toBe(
-      "CHECKBOT_RAG_BOOTSTRAP_FAKTENFORUM_KEY"
+      "SEARCH_BOOTSTRAP_FAKTENFORUM_KEY"
     );
   });
 
@@ -423,14 +423,14 @@ describe.skipIf(!dbAvailable)("UserService.bootstrapFromEnv", () => {
     await db.query(
       `INSERT INTO users (user_type, name, permissions, source, env_var_name)
        VALUES ('service', 'faktenforum', ARRAY['search']::text[],
-               'env_bootstrap', 'CHECKBOT_RAG_BOOTSTRAP_FAKTENFORUM_KEY')`
+               'env_bootstrap', 'SEARCH_BOOTSTRAP_FAKTENFORUM_KEY')`
     );
     // Same env_var_name twice must fail
     expect(
       db.query(
         `INSERT INTO users (user_type, name, permissions, source, env_var_name)
          VALUES ('service', 'dup', ARRAY['search']::text[],
-                 'env_bootstrap', 'CHECKBOT_RAG_BOOTSTRAP_FAKTENFORUM_KEY')`
+                 'env_bootstrap', 'SEARCH_BOOTSTRAP_FAKTENFORUM_KEY')`
       )
     ).rejects.toThrow();
   });

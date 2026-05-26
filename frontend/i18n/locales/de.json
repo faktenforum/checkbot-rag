@@ -129,7 +129,7 @@
     "login": "Anmelden",
     "signIn": "Anmelden",
     "logout": "Abmelden",
-    "loginTitle": "Bei Checkbot RAG anmelden",
+    "loginTitle": "Bei Search anmelden",
     "invalidCredentials": "Ungültige E-Mail oder Passwort"
   },
   "users": {

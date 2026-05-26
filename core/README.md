@@ -1,10 +1,10 @@
-## @checkbot/core
+## @search/core
 
-Shared TypeScript library for Checkbot RAG. It owns configuration, PostgreSQL/pgvector access, chunking, embeddings, hybrid search, imports, and statistics. Other packages (`frontend`, `mcp`) depend on this package for all data access.
+Shared TypeScript library for Search. It owns configuration, PostgreSQL/pgvector access, chunking, embeddings, hybrid search, imports, and statistics. Other packages (`frontend`, `mcp`) depend on this package for all data access.
 
 ### Responsibilities
 
-- **Configuration**: Validated runtime config derived from `CHECKBOT_RAG_*` environment variables.
+- **Configuration**: Validated runtime config derived from `SEARCH_*` environment variables.
 - **Database**: Connection pool and helpers for PostgreSQL with pgvector.
 - **Embedding**: Batched calls to the configured embedding provider.
 - **Chunking**: Claim-level chunking into overview and fact-detail chunks with metadata.
@@ -14,35 +14,35 @@ Shared TypeScript library for Checkbot RAG. It owns configuration, PostgreSQL/pg
 
 ### Configuration and environment
 
-Config is defined in `src/config/index.ts` and loaded from environment variables under the `CHECKBOT_RAG_` prefix.
+Config is defined in `src/config/index.ts` and loaded from environment variables under the `SEARCH_` prefix.
 
 Key variables:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `CHECKBOT_RAG_PORT` | `3020` | HTTP port (used by the Nitro server) |
-| `CHECKBOT_RAG_POSTGRES_HOST` | `localhost` (or `checkbot-rag-db` in Docker) | PostgreSQL host |
-| `CHECKBOT_RAG_POSTGRES_PORT` | `5432` | PostgreSQL port |
-| `CHECKBOT_RAG_POSTGRES_DB` | `checkbot_rag` | Database name |
-| `CHECKBOT_RAG_POSTGRES_USER` | `checkbot_rag` | Database user |
-| `CHECKBOT_RAG_POSTGRES_PASSWORD` | — | Database password (required) |
-| `CHECKBOT_RAG_EMBEDDING_PROVIDER` | `scaleway` | `scaleway`, `openrouter`, or `openai` |
-| `CHECKBOT_RAG_EMBEDDING_MODEL` | `qwen3-embedding-8b` | Embedding model name |
-| `CHECKBOT_RAG_EMBEDDING_API_KEY` | — | Embedding API key (required) |
-| `CHECKBOT_RAG_EMBEDDING_BASE_URL` | `https://api.scaleway.ai/v1` | Embedding API base URL |
-| `CHECKBOT_RAG_EMBEDDING_DIMENSIONS` | `1536` | Embedding dimensions (Matryoshka: 32–4096; recommend ≤ 2000 for pgvector ANN) |
-| `CHECKBOT_RAG_EMBEDDING_BATCH_SIZE` | `32` | Texts per embedding API call |
-| `CHECKBOT_RAG_SEARCH_WEIGHT_VEC` | `1.0` | RRF weight for vector search |
-| `CHECKBOT_RAG_SEARCH_WEIGHT_FTS` | `0.5` | RRF weight for full-text search |
-| `CHECKBOT_RAG_RRF_K` | `60` | RRF constant \(k\) |
-| `CHECKBOT_RAG_SEARCH_OVERFETCH` | `3` | Overfetch factor for candidates before RRF |
-| `CHECKBOT_RAG_MAX_CHUNK_CHARS` | `6000` | Max characters per chunk before splitting |
-| `CHECKBOT_RAG_STATIC_DIR` | optional | Path to static files (used by the HTTP host) |
-| `CHECKBOT_RAG_SESSION_SECRET` | — | Random 32+ char secret for session token hashing (required) |
-| `CHECKBOT_RAG_BOOTSTRAP_ADMIN_EMAIL` | optional | Email for the initial admin account (bootstrapped on first run) |
-| `CHECKBOT_RAG_BOOTSTRAP_ADMIN_PASSWORD` | optional | Password for the initial admin account |
-| `CHECKBOT_RAG_BOOTSTRAP_FAKTENFORUM_KEY` | optional | Bearer key for the `faktenforum` service user |
-| `CHECKBOT_RAG_BOOTSTRAP_MCP_KEY` | optional | Bearer key for the `mcp-agent` service user |
+| `SEARCH_PORT` | `3020` | HTTP port (used by the Nitro server) |
+| `SEARCH_POSTGRES_HOST` | `localhost` (or `search-db` in Docker) | PostgreSQL host |
+| `SEARCH_POSTGRES_PORT` | `5432` | PostgreSQL port |
+| `SEARCH_POSTGRES_DB` | `search` | Database name |
+| `SEARCH_POSTGRES_USER` | `search` | Database user |
+| `SEARCH_POSTGRES_PASSWORD` | — | Database password (required) |
+| `SEARCH_EMBEDDING_PROVIDER` | `scaleway` | `scaleway`, `openrouter`, or `openai` |
+| `SEARCH_EMBEDDING_MODEL` | `qwen3-embedding-8b` | Embedding model name |
+| `SEARCH_EMBEDDING_API_KEY` | — | Embedding API key (required) |
+| `SEARCH_EMBEDDING_BASE_URL` | `https://api.scaleway.ai/v1` | Embedding API base URL |
+| `SEARCH_EMBEDDING_DIMENSIONS` | `1536` | Embedding dimensions (Matryoshka: 32–4096; recommend ≤ 2000 for pgvector ANN) |
+| `SEARCH_EMBEDDING_BATCH_SIZE` | `32` | Texts per embedding API call |
+| `SEARCH_WEIGHT_VEC` | `1.0` | RRF weight for vector search |
+| `SEARCH_WEIGHT_FTS` | `0.5` | RRF weight for full-text search |
+| `SEARCH_RRF_K` | `60` | RRF constant \(k\) |
+| `SEARCH_OVERFETCH` | `3` | Overfetch factor for candidates before RRF |
+| `SEARCH_MAX_CHUNK_CHARS` | `6000` | Max characters per chunk before splitting |
+| `SEARCH_STATIC_DIR` | optional | Path to static files (used by the HTTP host) |
+| `SEARCH_SESSION_SECRET` | — | Random 32+ char secret for session token hashing (required) |
+| `SEARCH_BOOTSTRAP_ADMIN_EMAIL` | optional | Email for the initial admin account (bootstrapped on first run) |
+| `SEARCH_BOOTSTRAP_ADMIN_PASSWORD` | optional | Password for the initial admin account |
+| `SEARCH_BOOTSTRAP_FAKTENFORUM_KEY` | optional | Bearer key for the `faktenforum` service user |
+| `SEARCH_BOOTSTRAP_MCP_KEY` | optional | Bearer key for the `mcp-agent` service user |
 
 See `.env.example` at the repo root for a complete list and recommended defaults.
 
@@ -55,7 +55,7 @@ Each fact-check is split into two chunk types:
 | `claim_overview` | `synopsis`, `ratingSummary`, `ratingStatement`, `ratingLabel`, `categories` | ~200–500 chars |
 | `fact_detail` | Fact text plus source excerpts | ~300–1500 chars |
 
-Long facts exceeding `CHECKBOT_RAG_MAX_CHUNK_CHARS` are split at sentence boundaries with overlap to preserve context. Each chunk carries metadata such as `claimId`, `shortId`, `chunkType`, `factIndex`, `ratingLabel`, `categories`, `publishingDate`, `publishingUrl`, and `status`.
+Long facts exceeding `SEARCH_MAX_CHUNK_CHARS` are split at sentence boundaries with overlap to preserve context. Each chunk carries metadata such as `claimId`, `shortId`, `chunkType`, `factIndex`, `ratingLabel`, `categories`, `publishingDate`, `publishingUrl`, and `status`.
 
 ### Hybrid search (RRF)
 
@@ -72,9 +72,9 @@ score(doc) = weight_vec / (k + rank_vec) + weight_fts / (k + rank_fts)
 
 Defaults:
 
-- `CHECKBOT_RAG_SEARCH_WEIGHT_VEC = 1.0`
-- `CHECKBOT_RAG_SEARCH_WEIGHT_FTS = 0.5`
-- `CHECKBOT_RAG_RRF_K = 60`
+- `SEARCH_WEIGHT_VEC = 1.0`
+- `SEARCH_WEIGHT_FTS = 0.5`
+- `SEARCH_RRF_K = 60`
 
 Documents that appear in both rankings receive the highest fused scores. Use an explicit search language (e.g. `de`, `en`); `auto` is not supported yet.
 
@@ -89,11 +89,11 @@ Default is 1536 (fits pgvector ANN index; ≤2000). Approximate memory for embed
 | 100,000 | 500,000 | ~12 GB | ~8 GB |
 | 500,000 | 2.5M | ~60 GB | ~40 GB |
 
-For 100k+ claims, consider `CHECKBOT_RAG_EMBEDDING_DIMENSIONS=1024` and re-import.
+For 100k+ claims, consider `SEARCH_EMBEDDING_DIMENSIONS=1024` and re-import.
 
 ### Database and migrations
 
-SQL migrations for the `checkbot_rag` database are managed by [dbmate](https://github.com/amacneil/dbmate) and live in `core/db/migrations/*.sql`. They define:
+SQL migrations for the `search` database are managed by [dbmate](https://github.com/amacneil/dbmate) and live in `core/db/migrations/*.sql`. They define:
 
 - Core tables for claims, chunks, and import jobs.
 - pgvector-enabled columns for embeddings.
@@ -101,22 +101,22 @@ SQL migrations for the `checkbot_rag` database are managed by [dbmate](https://g
 
 Migrations are applied before the application starts:
 
-- In the standalone Docker stack under `dev/checkbot-rag`, the `checkbot-rag-dbmate` service runs `dbmate up` against the `checkbot_rag` database and the migrations in `core/db/migrations` before the `checkbot-rag` service starts.
+- In the standalone Docker stack under `dev/search`, the `search-dbmate` service runs `dbmate up` against the `search` database and the migrations in `core/db/migrations` before the `search` service starts.
 - If you run against a database outside that stack, you can run dbmate manually, for example:
 
   ```bash
-  # from dev/checkbot-rag
+  # from dev/search
   docker run --rm \
     -v "$(pwd)/core/db:/db" \
     --network=host \
-    -e DATABASE_URL="postgres://user:pass@127.0.0.1:5432/checkbot_rag?sslmode=disable" \
-    -e DBMATE_MIGRATIONS_TABLE=checkbot_schema_migrations \
+    -e DATABASE_URL="postgres://user:pass@127.0.0.1:5432/search?sslmode=disable" \
+    -e DBMATE_MIGRATIONS_TABLE=search_schema_migrations \
     ghcr.io/amacneil/dbmate:latest up
   ```
 
-The `DatabaseService` no longer runs schema migrations. All structural changes to the `checkbot_rag` database are applied via dbmate migrations in `core/db/migrations` before the application starts.
+The `DatabaseService` no longer runs schema migrations. All structural changes to the `search` database are applied via dbmate migrations in `core/db/migrations` before the application starts.
 
-From the repo root there are convenience scripts in `package.json` which reuse the `checkbot-rag-dbmate` service from `docker-compose.yml` (including its environment and volume mounts):
+From the repo root there are convenience scripts in `package.json` which reuse the `search-dbmate` service from `docker-compose.yml` (including its environment and volume mounts):
 
 - **Neue Migration anlegen** (nur Dateierzeugung, keine DB-Verbindung nötig):
 
@@ -139,7 +139,7 @@ From the repo root there are convenience scripts in `package.json` which reuse t
 
 ### Public API (services and types)
 
-`@checkbot/core` exports:
+`@search/core` exports:
 
 - `config` - resolved configuration object.
 - `db` - PostgreSQL client pool.

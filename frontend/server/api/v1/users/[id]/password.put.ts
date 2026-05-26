@@ -1,4 +1,4 @@
-import { userService } from "@checkbot/core";
+import { userService } from "@search/core";
 import { UpdatePasswordSchema } from "../../../../schemas/users";
 
 export default defineEventHandler(async (event) => {

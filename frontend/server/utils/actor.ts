@@ -1,4 +1,4 @@
-import type { Actor } from "@checkbot/core";
+import type { Actor } from "@search/core";
 import { createError, type H3Event } from "h3";
 
 /**

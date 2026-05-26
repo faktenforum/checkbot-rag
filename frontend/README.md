@@ -1,14 +1,14 @@
-## @checkbot/frontend
+## @search/frontend
 
-Nuxt 4 application for Checkbot RAG. It provides:
+Nuxt 4 application for Search. It provides:
 
 - A **Nuxt UI** based admin interface for searching fact-checks, browsing claims, viewing chunks, and managing imports.
-- A **Nitro server** that exposes the public HTTP surface of Checkbot RAG:
+- A **Nitro server** that exposes the public HTTP surface of Search:
   - `GET /health`
   - `/api/v1/**` REST endpoints
-  - `POST /mcp` MCP endpoint backed by `@checkbot/mcp`
+  - `POST /mcp` MCP endpoint backed by `@search/mcp`
 
-Internally it depends on `@checkbot/core` for configuration, database access, search, imports, and statistics.
+Internally it depends on `@search/core` for configuration, database access, search, imports, and statistics.
 
 ### Tech stack
 
@@ -70,10 +70,10 @@ Nuxt configuration lives in `nuxt.config.ts`. Relevant points:
   }
   ```
 
-- **Dev server port**: uses `CHECKBOT_RAG_PORT` if set, otherwise `3020`.
+- **Dev server port**: uses `SEARCH_PORT` if set, otherwise `3020`.
 - **CORS**: Nitro `routeRules` enable CORS for `/api/v1/**`, `/health`, and `/mcp`.
 
-The server itself reads all `CHECKBOT_RAG_*` environment variables through `@checkbot/core` (see `core/README.md`).
+The server itself reads all `SEARCH_*` environment variables through `@search/core` (see `core/README.md`).
 
 ### Authentication
 
@@ -95,14 +95,14 @@ Bootstrap env vars create service users on startup:
 
 | Env var | Service user | Default permissions |
 |---------|-------------|---------------------|
-| `CHECKBOT_RAG_BOOTSTRAP_FAKTENFORUM_KEY` | `faktenforum` | `claims:read`, `claims:write`, `search`, `import` |
-| `CHECKBOT_RAG_BOOTSTRAP_MCP_KEY` | `mcp-agent` | `mcp:use`, `claims:read`, `search` |
+| `SEARCH_BOOTSTRAP_FAKTENFORUM_KEY` | `faktenforum` | `claims:read`, `claims:write`, `search`, `import` |
+| `SEARCH_BOOTSTRAP_MCP_KEY` | `mcp-agent` | `mcp:use`, `claims:read`, `search` |
 
-Admin login is bootstrapped via `CHECKBOT_RAG_BOOTSTRAP_ADMIN_EMAIL` + `CHECKBOT_RAG_BOOTSTRAP_ADMIN_PASSWORD`.
+Admin login is bootstrapped via `SEARCH_BOOTSTRAP_ADMIN_EMAIL` + `SEARCH_BOOTSTRAP_ADMIN_PASSWORD`.
 
 ### MCP endpoint
 
-The Nitro route `server/routes/mcp.ts` forwards requests to `@checkbot/mcp`:
+The Nitro route `server/routes/mcp.ts` forwards requests to `@search/mcp`:
 
 - `POST /mcp` - MCP HTTP/SSE endpoint.
 - Requires Bearer token with `mcp:use` permission (e.g. a key from the `mcp-agent` service user).
@@ -118,17 +118,17 @@ See `mcp/README.md` for the available tools and payloads.
    ```
 
 2. **Start PostgreSQL and migrations**  
-   In most cases you will run the full stack via Docker (`docker compose up`) so PostgreSQL and migrations are handled for you. The `checkbot-rag-dbmate` service runs [dbmate](https://github.com/amacneil/dbmate) against the `checkbot_rag` database using the migration files in `core/db/migrations` before the app starts.
+   In most cases you will run the full stack via Docker (`docker compose up`) so PostgreSQL and migrations are handled for you. The `search-dbmate` service runs [dbmate](https://github.com/amacneil/dbmate) against the `search` database using the migration files in `core/db/migrations` before the app starts.
 
    If you run Nuxt alone, ensure PostgreSQL is reachable and the dbmate migrations have been applied, for example:
 
    ```bash
-   # from dev/checkbot-rag
+   # from dev/search
    docker run --rm \
      -v "$(pwd)/core/db:/db" \
      --network=host \
-     -e DATABASE_URL="postgres://user:pass@127.0.0.1:5432/checkbot_rag?sslmode=disable" \
-     -e DBMATE_MIGRATIONS_TABLE=checkbot_schema_migrations \
+     -e DATABASE_URL="postgres://user:pass@127.0.0.1:5432/search?sslmode=disable" \
+     -e DBMATE_MIGRATIONS_TABLE=search_schema_migrations \
      ghcr.io/amacneil/dbmate:latest up
    ```
 
@@ -139,5 +139,5 @@ See `mcp/README.md` for the available tools and payloads.
    bun run dev
    ```
 
-   The UI will be available on `http://localhost:<CHECKBOT_RAG_PORT or 3020>`.
+   The UI will be available on `http://localhost:<SEARCH_PORT or 3020>`.
 

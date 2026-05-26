@@ -1,4 +1,4 @@
-import type { User } from "@checkbot/core";
+import type { User } from "@search/core";
 
 // Shared reactive user state across the app
 const currentUser = ref<User | null | undefined>(undefined);

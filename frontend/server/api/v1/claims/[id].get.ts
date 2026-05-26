@@ -1,4 +1,4 @@
-import { claimsService } from "@checkbot/core";
+import { claimsService } from "@search/core";
 import { defineEventHandler, getRouterParam, setResponseStatus } from "h3";
 
 export default defineEventHandler(async (event) => {

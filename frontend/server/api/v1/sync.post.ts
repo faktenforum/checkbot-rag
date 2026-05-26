@@ -1,6 +1,6 @@
-import { importService, config } from "@checkbot/core";
-import type { ClaimJson } from "@checkbot/core";
-import { IMPORT_LANGUAGE_CODES } from "@checkbot/core";
+import { importService, config } from "@search/core";
+import type { ClaimJson } from "@search/core";
+import { IMPORT_LANGUAGE_CODES } from "@search/core";
 import { z } from "zod";
 
 const SyncSchema = z.object({
@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
 
   if (!faktenforumUrl) {
     setResponseStatus(event, 503);
-    return { error: "CHECKBOT_RAG_FAKTENFORUM_URL is not configured" };
+    return { error: "SEARCH_FAKTENFORUM_URL is not configured" };
   }
 
   const body = await readBody(event).catch(() => ({}));

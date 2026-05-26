@@ -1,4 +1,4 @@
-import { apiKeyService, hasPermission } from "@checkbot/core";
+import { apiKeyService, hasPermission } from "@search/core";
 
 export default defineEventHandler(async (event) => {
   const requestUser = event.context.user;

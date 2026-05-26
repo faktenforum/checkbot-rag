@@ -1,6 +1,6 @@
 import fs from "node:fs";
-import { importService } from "@checkbot/core";
-import type { ClaimJson } from "@checkbot/core";
+import { importService } from "@search/core";
+import type { ClaimJson } from "@search/core";
 import { ImportFromFileSchema } from "../../schemas/import";
 
 export default defineEventHandler(async (event) => {

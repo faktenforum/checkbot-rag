@@ -91,10 +91,10 @@ ALTER SEQUENCE public.audit_log_id_seq OWNED BY public.audit_log.id;
 
 
 --
--- Name: checkbot_schema_migrations; Type: TABLE; Schema: public; Owner: -
+-- Name: search_schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.checkbot_schema_migrations (
+CREATE TABLE public.search_schema_migrations (
     version character varying NOT NULL
 );
 
@@ -269,11 +269,11 @@ ALTER TABLE ONLY public.audit_log
 
 
 --
--- Name: checkbot_schema_migrations checkbot_schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: search_schema_migrations search_schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.checkbot_schema_migrations
-    ADD CONSTRAINT checkbot_schema_migrations_pkey PRIMARY KEY (version);
+ALTER TABLE ONLY public.search_schema_migrations
+    ADD CONSTRAINT search_schema_migrations_pkey PRIMARY KEY (version);
 
 
 --
@@ -554,7 +554,7 @@ ALTER TABLE ONLY public.users
 -- Dbmate schema migrations
 --
 
-INSERT INTO public.checkbot_schema_migrations (version) VALUES
+INSERT INTO public.search_schema_migrations (version) VALUES
     ('20260225120000'),
     ('20260225121000'),
     ('20260225122000'),

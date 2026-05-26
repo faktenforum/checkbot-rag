@@ -2,7 +2,7 @@ import { describe, it, expect, mock, beforeEach, afterEach, spyOn } from "bun:te
 
 describe("POST /api/v1/sync - schema and config validation", () => {
   it("validates language defaults to 'de'", async () => {
-    const { IMPORT_LANGUAGE_CODES } = await import("@checkbot/core");
+    const { IMPORT_LANGUAGE_CODES } = await import("@search/core");
     const { z } = await import("zod");
 
     const SyncSchema = z.object({
@@ -17,7 +17,7 @@ describe("POST /api/v1/sync - schema and config validation", () => {
   });
 
   it("rejects invalid language codes", async () => {
-    const { IMPORT_LANGUAGE_CODES } = await import("@checkbot/core");
+    const { IMPORT_LANGUAGE_CODES } = await import("@search/core");
     const { z } = await import("zod");
 
     const SyncSchema = z.object({
@@ -29,7 +29,7 @@ describe("POST /api/v1/sync - schema and config validation", () => {
   });
 
   it("config has faktenforum section", async () => {
-    const { config } = await import("@checkbot/core");
+    const { config } = await import("@search/core");
 
     // faktenforum config key should exist (values depend on env)
     expect(typeof config).toBe("object");

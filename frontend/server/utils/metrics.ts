@@ -9,8 +9,8 @@ import promClient, { Counter } from "prom-client";
 // prefixed name because `prefix` is applied to every default metric; without
 // it the check would never match and the collector would re-register on hot
 // reload.
-if (!promClient.register.getSingleMetric("checkbot_rag_process_cpu_seconds_total")) {
-  promClient.collectDefaultMetrics({ prefix: "checkbot_rag_" });
+if (!promClient.register.getSingleMetric("search_process_cpu_seconds_total")) {
+  promClient.collectDefaultMetrics({ prefix: "search_" });
 }
 
 function getOrCreate(opts: {
@@ -31,7 +31,7 @@ function getOrCreate(opts: {
 // attempts that never reached AuthService (the pre-auth middleware rejected
 // them) from real bad-password tries.
 export const loginTotal = getOrCreate({
-  name: "checkbot_rag_auth_login_total",
+  name: "search_auth_login_total",
   help: "Login attempts by outcome",
   labelNames: ["result"] as const // 'success' | 'failed' | 'rate_limited'
 });
@@ -39,7 +39,7 @@ export const loginTotal = getOrCreate({
 // 05.rate-limit.ts + 035.login-rate-limit.ts rejections. bucket labels allow
 // separate alerts for login brute-force vs. normal API throttling.
 export const rateLimitRejectedTotal = getOrCreate({
-  name: "checkbot_rag_rate_limit_rejected_total",
+  name: "search_rate_limit_rejected_total",
   help: "Requests rejected by the rate limiter, by bucket",
   labelNames: ["bucket"] as const // 'login_ip' | 'login_email' | 'api' | 'search' | 'import'
 });

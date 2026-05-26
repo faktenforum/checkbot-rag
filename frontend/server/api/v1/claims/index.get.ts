@@ -1,4 +1,4 @@
-import { claimsService } from "@checkbot/core";
+import { claimsService } from "@search/core";
 import { GetClaimsQuerySchema } from "../../../schemas/claims";
 
 export default defineEventHandler(async (event) => {

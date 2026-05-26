@@ -1,5 +1,5 @@
-import { importService } from "@checkbot/core";
-import type { ClaimJson } from "@checkbot/core";
+import { importService } from "@search/core";
+import type { ClaimJson } from "@search/core";
 import { ImportFromJsonSchema } from "../../../schemas/import";
 
 export default defineEventHandler(async (event) => {

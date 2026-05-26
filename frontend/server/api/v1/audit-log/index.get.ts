@@ -1,4 +1,4 @@
-import { auditLogService } from "@checkbot/core";
+import { auditLogService } from "@search/core";
 import { AuditLogQuerySchema } from "../../../schemas/auditLog";
 
 export default defineEventHandler(async (event) => {

@@ -3,7 +3,7 @@ import {
   config,
   RateLimiterRes,
   auditLogService,
-} from "@checkbot/core";
+} from "@search/core";
 import {
   defineEventHandler,
   getRequestIP,

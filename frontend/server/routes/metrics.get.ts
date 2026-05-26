@@ -4,14 +4,14 @@ import { promClient } from "../utils/metrics";
 // Prometheus scraper endpoint. Bypasses the auth middleware (PUBLIC_PATH),
 // protected by an IP allowlist because scrape targets are typically reached
 // from inside the cluster. Allowed IPs via env var
-// CHECKBOT_RAG_METRICS_ALLOWED_IPS, comma-separated. Defaults to loopback +
+// SEARCH_METRICS_ALLOWED_IPS, comma-separated. Defaults to loopback +
 // RFC 1918 private ranges, which matches most docker-compose / k8s setups
 // where Prometheus lives on the same network.
 
 const DEFAULT_ALLOWLIST = ["127.0.0.1", "::1", "10.", "172.", "192.168."];
 
 function parseAllowlist(): string[] {
-  const raw = process.env.CHECKBOT_RAG_METRICS_ALLOWED_IPS;
+  const raw = process.env.SEARCH_METRICS_ALLOWED_IPS;
   if (!raw) return DEFAULT_ALLOWLIST;
   return raw
     .split(",")

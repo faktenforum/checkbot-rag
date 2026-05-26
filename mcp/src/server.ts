@@ -14,7 +14,7 @@ const sessions = new Map<string, SessionEntry>();
 
 export function createMcpServer(): McpServer {
   const server = new McpServer({
-    name: "checkbot-rag",
+    name: "search",
     version: "1.0.0",
   });
 

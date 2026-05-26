@@ -1,4 +1,4 @@
-import { config, db, EmbeddingService } from "@checkbot/core";
+import { config, db, EmbeddingService } from "@search/core";
 
 // Default: fast DB-only probe. Scrapers hit this frequently, so we don't
 // contact the embedding provider by default (would consume quota and add

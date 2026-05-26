@@ -1,4 +1,4 @@
-import { CLAIM_STATUS_VALUES } from "@checkbot/core";
+import { CLAIM_STATUS_VALUES } from "@search/core";
 import { z } from "zod";
 
 export const GetClaimsQuerySchema = z.object({

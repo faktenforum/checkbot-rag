@@ -1,5 +1,5 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { claimsService } from "@checkbot/core";
+import { claimsService } from "@search/core";
 import type { McpResult } from "../types.js";
 import { text } from "../types.js";
 import { z } from "zod";

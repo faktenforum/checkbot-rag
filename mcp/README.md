@@ -1,6 +1,6 @@
-## @checkbot/mcp
+## @search/mcp
 
-Reusable Model Context Protocol (MCP) server for Checkbot RAG. This package wires the MCP SDK to the `@checkbot/core` services and exposes tools for searching and inspecting Faktenforum fact-checks.
+Reusable Model Context Protocol (MCP) server for Search. This package wires the MCP SDK to the `@search/core` services and exposes tools for searching and inspecting Faktenforum fact-checks.
 
 It is used by the Nuxt Nitro route at `/mcp` and can also be embedded in other Node.js HTTP servers.
 
@@ -16,7 +16,7 @@ The server registers three tools:
 
 #### `search_factchecks`
 
-- **Description**: Search fact-checks using the hybrid search from `@checkbot/core`.
+- **Description**: Search fact-checks using the hybrid search from `@search/core`.
 - **Input**:
   - `query` (`string`, required) - search query.
   - `limit` (`number`, optional, default `5`) - number of results (`1–20`).
@@ -51,16 +51,16 @@ The tool returns a Markdown list of `- <category>: <count> fact-checks`.
 
 ### HTTP transport and sessions
 
-`@checkbot/mcp` uses `StreamableHTTPServerTransport` from `@modelcontextprotocol/sdk` and supports stateful sessions via the `mcp-session-id` header.
+`@search/mcp` uses `StreamableHTTPServerTransport` from `@modelcontextprotocol/sdk` and supports stateful sessions via the `mcp-session-id` header.
 
 The Nuxt integration in `frontend` exposes the MCP server at:
 
 - `POST /mcp` - HTTP/SSE transport, requires `Authorization: Bearer <key>` with `mcp:use` permission.
 
-The `mcp-agent` service user key is bootstrapped from `CHECKBOT_RAG_BOOTSTRAP_MCP_KEY`. To use it:
+The `mcp-agent` service user key is bootstrapped from `SEARCH_BOOTSTRAP_MCP_KEY`. To use it:
 
 ```http
-Authorization: Bearer <CHECKBOT_RAG_BOOTSTRAP_MCP_KEY value>
+Authorization: Bearer <SEARCH_BOOTSTRAP_MCP_KEY value>
 ```
 
 Alternatively, create a key with `mcp:use` permission in the admin UI at `/keys`.
@@ -71,7 +71,7 @@ You can reuse the MCP server outside of Nuxt by calling `createMcpServer` and `h
 
 ```ts
 import http from "node:http";
-import { handleMcpRequest } from "@checkbot/mcp";
+import { handleMcpRequest } from "@search/mcp";
 
 const server = http.createServer(async (req, res) => {
   if (req.url === "/mcp" && req.method === "POST") {

@@ -46,7 +46,7 @@ export class EmbeddingService {
           "Content-Type": "application/json",
           Authorization: `Bearer ${this.apiKey}`,
           "HTTP-Referer": "https://faktenforum.org",
-          "X-Title": "Checkbot RAG",
+          "X-Title": "Search",
         },
         body: JSON.stringify(body),
         signal: controller.signal,
@@ -98,7 +98,7 @@ export class EmbeddingService {
           Authorization: `Bearer ${this.apiKey}`,
           // OpenRouter requires these headers; harmless for Scaleway
           "HTTP-Referer": "https://faktenforum.org",
-          "X-Title": "Checkbot RAG",
+          "X-Title": "Search",
         },
         body: JSON.stringify(body),
       });

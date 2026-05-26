@@ -1,4 +1,4 @@
-import { IMPORT_LANGUAGE_CODES } from "@checkbot/core";
+import { IMPORT_LANGUAGE_CODES } from "@search/core";
 import { z } from "zod";
 
 export const JobIdParamSchema = z.string().uuid();

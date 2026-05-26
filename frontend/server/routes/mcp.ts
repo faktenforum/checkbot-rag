@@ -1,4 +1,4 @@
-import { handleMcpRequest } from "@checkbot/mcp";
+import { handleMcpRequest } from "@search/mcp";
 
 export default defineEventHandler(async (event) => {
   assertPermission(event, "mcp:use");

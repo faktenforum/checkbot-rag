@@ -1,4 +1,4 @@
-import type { ApiKey } from "@checkbot/core";
+import type { ApiKey } from "@search/core";
 
 interface ApiKeyListResponse {
   keys: ApiKey[];

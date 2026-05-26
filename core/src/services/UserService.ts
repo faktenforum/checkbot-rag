@@ -312,7 +312,7 @@ export class UserService {
   async bootstrapFromEnv(): Promise<void> {
     await this.bootstrapAdmin();
     await this.bootstrapServiceUser({
-      envVarName: "CHECKBOT_RAG_BOOTSTRAP_FAKTENFORUM_KEY",
+      envVarName: "SEARCH_BOOTSTRAP_FAKTENFORUM_KEY",
       userName: "faktenforum",
       keyName: "faktenforum-bootstrap",
       permissions: ["claims:read", "claims:write", "search", "import"],
@@ -320,7 +320,7 @@ export class UserService {
       rateLimitPoints: null,
     });
     await this.bootstrapServiceUser({
-      envVarName: "CHECKBOT_RAG_BOOTSTRAP_MCP_KEY",
+      envVarName: "SEARCH_BOOTSTRAP_MCP_KEY",
       userName: "mcp-agent",
       keyName: "mcp-bootstrap",
       permissions: ["mcp:use", "claims:read", "search"],
@@ -331,7 +331,7 @@ export class UserService {
 
   private async bootstrapAdmin(): Promise<void> {
     const { adminEmail, adminPassword } = config.auth.bootstrap;
-    const envVarName = "CHECKBOT_RAG_BOOTSTRAP_ADMIN_EMAIL";
+    const envVarName = "SEARCH_BOOTSTRAP_ADMIN_EMAIL";
 
     // Find existing bootstrapped admin by env_var_name (stable across email changes)
     const { rows } = await db.query<UserRow>(

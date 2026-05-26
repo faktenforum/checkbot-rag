@@ -1,4 +1,4 @@
-import type { ActorSource, ApiKey, Session, User } from "@checkbot/core";
+import type { ActorSource, ApiKey, Session, User } from "@search/core";
 
 declare module "h3" {
   interface H3EventContext {

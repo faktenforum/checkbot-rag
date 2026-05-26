@@ -1,5 +1,5 @@
 {
-  "name": "@checkbot/frontend",
+  "name": "@search/frontend",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -12,8 +12,8 @@
     "check": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "@checkbot/core": "workspace:*",
-    "@checkbot/mcp": "workspace:*",
+    "@search/core": "workspace:*",
+    "@search/mcp": "workspace:*",
     "@nuxt/ui": "^4.5.0",
     "@nuxtjs/i18n": "^10.2.3",
     "@pinia/nuxt": "^0.11.3",

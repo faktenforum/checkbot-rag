@@ -1,4 +1,4 @@
-import { rateLimiterService, config, RateLimiterRes } from "@checkbot/core";
+import { rateLimiterService, config, RateLimiterRes } from "@search/core";
 import { defineEventHandler, setResponseStatus, setResponseHeader } from "h3";
 import { rateLimitRejectedTotal } from "../utils/metrics";
 

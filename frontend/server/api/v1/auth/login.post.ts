@@ -1,9 +1,9 @@
-import { authService } from "@checkbot/core";
+import { authService } from "@search/core";
 import { getRequestIP, setCookie } from "h3";
 import { LoginSchema } from "../../../schemas/auth";
 import { loginTotal } from "../../../utils/metrics";
 
-const SESSION_COOKIE = "checkbot_session";
+const SESSION_COOKIE = "search_session";
 const COOKIE_MAX_AGE = 30 * 24 * 60 * 60; // 30 days max lifetime
 
 export default defineEventHandler(async (event) => {
