@@ -26,7 +26,7 @@ watch(
           to="/"
           class="w-full p-2.5 mt-3.5 rounded-lg hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary text-default"
         >
-          <LogoComplete class="block w-full h-auto" />
+          <LogoComplete class="block h-10 w-auto mx-auto my-1" />
         </NuxtLink>
       </template>
       <template #default>
