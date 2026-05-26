@@ -1,4 +1,4 @@
-import { db, userService } from "@checkbot/core";
+import { db, userService } from "@search/core";
 import { defineEventHandler } from "h3";
 
 let initialized = false;

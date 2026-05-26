@@ -1,7 +1,7 @@
 import {
   AUTO_LANGUAGE_ERROR_MESSAGE,
   searchService,
-} from "@checkbot/core";
+} from "@search/core";
 import { defineEventHandler, readBody, setResponseStatus } from "h3";
 import { z } from "zod";
 import { SearchRequestSchema } from "../../schemas/search";

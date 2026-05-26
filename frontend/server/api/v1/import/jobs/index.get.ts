@@ -1,4 +1,4 @@
-import { importService } from "@checkbot/core";
+import { importService } from "@search/core";
 
 export default defineEventHandler(async (event) => {
   assertPermission(event, "import");

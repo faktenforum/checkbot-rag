@@ -129,7 +129,7 @@
     "login": "Log in",
     "signIn": "Sign in",
     "logout": "Log out",
-    "loginTitle": "Sign in to Checkbot RAG",
+    "loginTitle": "Sign in to Search",
     "invalidCredentials": "Invalid email or password"
   },
   "users": {

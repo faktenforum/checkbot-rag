@@ -1,94 +1,94 @@
 # Standalone run (no Traefik). Used for local development and testing.
-# Copy .env.example to .env and set CHECKBOT_RAG_EMBEDDING_API_KEY and CHECKBOT_RAG_EMBEDDING_BASE_URL, then:
+# Copy .env.example to .env and set SEARCH_EMBEDDING_API_KEY and SEARCH_EMBEDDING_BASE_URL, then:
 #   docker compose up --build
 # Admin UI: http://localhost:3020
 
 services:
-  checkbot-rag-db:
+  search-db:
     image: pgvector/pgvector:0.8.1-pg18-trixie
     restart: always
     environment:
-      POSTGRES_DB: ${CHECKBOT_RAG_POSTGRES_DB:-checkbot_rag}
-      POSTGRES_USER: ${CHECKBOT_RAG_POSTGRES_USER:-checkbot_rag}
-      POSTGRES_PASSWORD: ${CHECKBOT_RAG_POSTGRES_PASSWORD:-mypassword}
+      POSTGRES_DB: ${SEARCH_POSTGRES_DB:-search}
+      POSTGRES_USER: ${SEARCH_POSTGRES_USER:-search}
+      POSTGRES_PASSWORD: ${SEARCH_POSTGRES_PASSWORD:-mypassword}
     volumes:
-      - checkbot_rag_pgdata:/var/lib/postgresql
+      - search_pgdata:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${CHECKBOT_RAG_POSTGRES_USER:-checkbot_rag} -d ${CHECKBOT_RAG_POSTGRES_DB:-checkbot_rag}"]
+      test: ["CMD-SHELL", "pg_isready -U ${SEARCH_POSTGRES_USER:-search} -d ${SEARCH_POSTGRES_DB:-search}"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
     networks:
-      - checkbot-net
+      - search-net
 
-  checkbot-rag-dbmate:
+  search-dbmate:
     image: ghcr.io/amacneil/dbmate:latest
     environment:
-      DATABASE_URL: "postgres://${CHECKBOT_RAG_POSTGRES_USER:-checkbot_rag}:${CHECKBOT_RAG_POSTGRES_PASSWORD:-mypassword}@checkbot-rag-db:5432/${CHECKBOT_RAG_POSTGRES_DB:-checkbot_rag}?sslmode=disable"
-      DBMATE_MIGRATIONS_TABLE: checkbot_schema_migrations
+      DATABASE_URL: "postgres://${SEARCH_POSTGRES_USER:-search}:${SEARCH_POSTGRES_PASSWORD:-mypassword}@search-db:5432/${SEARCH_POSTGRES_DB:-search}?sslmode=disable"
+      DBMATE_MIGRATIONS_TABLE: search_schema_migrations
       DBMATE_NO_DUMP_SCHEMA: "1"
       DBMATE_WAIT: "1"
     volumes:
       - ./core/db:/db
     depends_on:
-      checkbot-rag-db:
+      search-db:
         condition: service_healthy
     command: ["up"]
     networks:
-      - checkbot-net
+      - search-net
 
-  checkbot-rag:
+  search:
     build: .
     restart: always
     ports:
-      - "${CHECKBOT_RAG_PORT:-3020}:3020"
+      - "${SEARCH_PORT:-3020}:3020"
     environment:
-      CHECKBOT_RAG_PORT: ${CHECKBOT_RAG_PORT:-3020}
-      PORT: ${CHECKBOT_RAG_PORT:-3020}
+      SEARCH_PORT: ${SEARCH_PORT:-3020}
+      PORT: ${SEARCH_PORT:-3020}
       HOST: "0.0.0.0"
-      CHECKBOT_RAG_POSTGRES_HOST: checkbot-rag-db
-      CHECKBOT_RAG_POSTGRES_PORT: "5432"
-      CHECKBOT_RAG_POSTGRES_DB: ${CHECKBOT_RAG_POSTGRES_DB:-checkbot_rag}
-      CHECKBOT_RAG_POSTGRES_USER: ${CHECKBOT_RAG_POSTGRES_USER:-checkbot_rag}
-      CHECKBOT_RAG_POSTGRES_PASSWORD: ${CHECKBOT_RAG_POSTGRES_PASSWORD:-mypassword}
-      CHECKBOT_RAG_EMBEDDING_PROVIDER: ${CHECKBOT_RAG_EMBEDDING_PROVIDER:-scaleway}
-      CHECKBOT_RAG_EMBEDDING_MODEL: ${CHECKBOT_RAG_EMBEDDING_MODEL:-qwen3-embedding-8b}
-      CHECKBOT_RAG_EMBEDDING_API_KEY: ${CHECKBOT_RAG_EMBEDDING_API_KEY:-}
-      CHECKBOT_RAG_EMBEDDING_BASE_URL: ${CHECKBOT_RAG_EMBEDDING_BASE_URL:-https://api.scaleway.ai/v1}
-      CHECKBOT_RAG_EMBEDDING_DIMENSIONS: ${CHECKBOT_RAG_EMBEDDING_DIMENSIONS:-1536}
-      CHECKBOT_RAG_EMBEDDING_BATCH_SIZE: ${CHECKBOT_RAG_EMBEDDING_BATCH_SIZE:-32}
-      CHECKBOT_RAG_SEARCH_WEIGHT_VEC: ${CHECKBOT_RAG_SEARCH_WEIGHT_VEC:-1.0}
-      CHECKBOT_RAG_SEARCH_WEIGHT_FTS: ${CHECKBOT_RAG_SEARCH_WEIGHT_FTS:-0.5}
-      CHECKBOT_RAG_RRF_K: ${CHECKBOT_RAG_RRF_K:-60}
-      CHECKBOT_RAG_SEARCH_OVERFETCH: ${CHECKBOT_RAG_SEARCH_OVERFETCH:-3}
-      CHECKBOT_RAG_MAX_CHUNK_CHARS: ${CHECKBOT_RAG_MAX_CHUNK_CHARS:-6000}
-      CHECKBOT_RAG_SESSION_SECRET: ${CHECKBOT_RAG_SESSION_SECRET:-dev-insecure-session-secret-change-me-please!!}
-      CHECKBOT_RAG_BOOTSTRAP_ADMIN_EMAIL: ${CHECKBOT_RAG_BOOTSTRAP_ADMIN_EMAIL:-}
-      CHECKBOT_RAG_BOOTSTRAP_ADMIN_PASSWORD: ${CHECKBOT_RAG_BOOTSTRAP_ADMIN_PASSWORD:-}
-      CHECKBOT_RAG_BOOTSTRAP_FAKTENFORUM_KEY: ${CHECKBOT_RAG_BOOTSTRAP_FAKTENFORUM_KEY:-}
-      CHECKBOT_RAG_BOOTSTRAP_MCP_KEY: ${CHECKBOT_RAG_BOOTSTRAP_MCP_KEY:-}
-      CHECKBOT_RAG_RATE_LIMIT_ENABLED: ${CHECKBOT_RAG_RATE_LIMIT_ENABLED:-true}
+      SEARCH_POSTGRES_HOST: search-db
+      SEARCH_POSTGRES_PORT: "5432"
+      SEARCH_POSTGRES_DB: ${SEARCH_POSTGRES_DB:-search}
+      SEARCH_POSTGRES_USER: ${SEARCH_POSTGRES_USER:-search}
+      SEARCH_POSTGRES_PASSWORD: ${SEARCH_POSTGRES_PASSWORD:-mypassword}
+      SEARCH_EMBEDDING_PROVIDER: ${SEARCH_EMBEDDING_PROVIDER:-scaleway}
+      SEARCH_EMBEDDING_MODEL: ${SEARCH_EMBEDDING_MODEL:-qwen3-embedding-8b}
+      SEARCH_EMBEDDING_API_KEY: ${SEARCH_EMBEDDING_API_KEY:-}
+      SEARCH_EMBEDDING_BASE_URL: ${SEARCH_EMBEDDING_BASE_URL:-https://api.scaleway.ai/v1}
+      SEARCH_EMBEDDING_DIMENSIONS: ${SEARCH_EMBEDDING_DIMENSIONS:-1536}
+      SEARCH_EMBEDDING_BATCH_SIZE: ${SEARCH_EMBEDDING_BATCH_SIZE:-32}
+      SEARCH_WEIGHT_VEC: ${SEARCH_WEIGHT_VEC:-1.0}
+      SEARCH_WEIGHT_FTS: ${SEARCH_WEIGHT_FTS:-0.5}
+      SEARCH_RRF_K: ${SEARCH_RRF_K:-60}
+      SEARCH_OVERFETCH: ${SEARCH_OVERFETCH:-3}
+      SEARCH_MAX_CHUNK_CHARS: ${SEARCH_MAX_CHUNK_CHARS:-6000}
+      SEARCH_SESSION_SECRET: ${SEARCH_SESSION_SECRET:-dev-insecure-session-secret-change-me-please!!}
+      SEARCH_BOOTSTRAP_ADMIN_EMAIL: ${SEARCH_BOOTSTRAP_ADMIN_EMAIL:-}
+      SEARCH_BOOTSTRAP_ADMIN_PASSWORD: ${SEARCH_BOOTSTRAP_ADMIN_PASSWORD:-}
+      SEARCH_BOOTSTRAP_FAKTENFORUM_KEY: ${SEARCH_BOOTSTRAP_FAKTENFORUM_KEY:-}
+      SEARCH_BOOTSTRAP_MCP_KEY: ${SEARCH_BOOTSTRAP_MCP_KEY:-}
+      SEARCH_RATE_LIMIT_ENABLED: ${SEARCH_RATE_LIMIT_ENABLED:-true}
       NODE_ENV: production
     volumes:
       - ./exports:/data/exports
     depends_on:
-      checkbot-rag-db:
+      search-db:
         condition: service_healthy
-      checkbot-rag-dbmate:
+      search-dbmate:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:${CHECKBOT_RAG_PORT:-3020}/health || exit 1"]
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:${SEARCH_PORT:-3020}/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
     networks:
-      - checkbot-net
+      - search-net
 
 volumes:
-  checkbot_rag_pgdata:
+  search_pgdata:
 
 networks:
-  checkbot-net:
+  search-net:
     driver: bridge

@@ -1,4 +1,4 @@
-import type { User } from "@checkbot/core";
+import type { User } from "@search/core";
 
 interface UserListResponse {
   users: User[];

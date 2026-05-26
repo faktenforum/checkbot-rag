@@ -1,4 +1,4 @@
-// Base fetch composable for all API calls to the checkbot-rag backend.
+// Base fetch composable for all API calls to the search backend.
 export function useApi() {
   const config = useRuntimeConfig();
   const baseUrl = config.public.apiBase;

@@ -1,4 +1,4 @@
-import { CLAIM_STATUS_VALUES, SEARCH_LANGUAGE_CODES } from "@checkbot/core";
+import { CLAIM_STATUS_VALUES, SEARCH_LANGUAGE_CODES } from "@search/core";
 import { z } from "zod";
 
 export const SearchRequestSchema = z.object({

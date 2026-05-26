@@ -1,5 +1,5 @@
-import { apiKeyService } from "@checkbot/core";
-import type { ActorSource } from "@checkbot/core";
+import { apiKeyService } from "@search/core";
+import type { ActorSource } from "@search/core";
 import {
   defineEventHandler,
   getHeader,

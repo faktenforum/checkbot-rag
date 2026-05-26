@@ -1,4 +1,4 @@
-# AGENTS.md — checkbot-rag
+# AGENTS.md — search
 
 Fact-check RAG service. Three packages: `core/`, `frontend/`, `mcp/`.
 
@@ -35,7 +35,7 @@ Fact-check RAG service. Three packages: `core/`, `frontend/`, `mcp/`.
 
 ## Auth system
 
-**Session auth**: email + password login → `checkbot_session` HttpOnly cookie containing HMAC-SHA256 token. Server-side session row in `sessions` table. Rolling expiry (7d), absolute cap (30d).
+**Session auth**: email + password login → `search_session` HttpOnly cookie containing HMAC-SHA256 token. Server-side session row in `sessions` table. Rolling expiry (7d), absolute cap (30d).
 
 **API key auth**: `Authorization: Bearer ffk_<prefix>_<secret>`. Key SHA-256 hashed to `key_hash`. Effective permissions = `user.permissions ∩ key.permissions`.
 
@@ -57,7 +57,7 @@ Role presets: `admin`, `partner` (claims:read + search), `service` (claims:read/
 ```
 01.db-init.ts    DB init + bootstrapFromEnv() on startup
 02.cors.ts       CORS
-03.session.ts    Read checkbot_session cookie → event.context.sessionUser + session
+03.session.ts    Read search_session cookie → event.context.sessionUser + session
 04.api-auth.ts   Bearer token → event.context.apiKey + user; session fallback; 401 if neither
 05.rate-limit.ts Rate limit per api_key.id or session userId
 ```
@@ -67,14 +67,14 @@ Public paths exempt from 04: `/api/v1/auth/login`, `/api/v1/auth/logout`.
 ## Env vars
 
 ```
-CHECKBOT_RAG_SESSION_SECRET          # min 32 chars (openssl rand -hex 32)
-CHECKBOT_RAG_BOOTSTRAP_ADMIN_EMAIL   # initial admin (idempotent)
-CHECKBOT_RAG_BOOTSTRAP_ADMIN_PASSWORD
-CHECKBOT_RAG_BOOTSTRAP_FAKTENFORUM_KEY  # service user key for faktenforum
-CHECKBOT_RAG_BOOTSTRAP_MCP_KEY          # service user key for mcp-agent
+SEARCH_SESSION_SECRET          # min 32 chars (openssl rand -hex 32)
+SEARCH_BOOTSTRAP_ADMIN_EMAIL   # initial admin (idempotent)
+SEARCH_BOOTSTRAP_ADMIN_PASSWORD
+SEARCH_BOOTSTRAP_FAKTENFORUM_KEY  # service user key for faktenforum
+SEARCH_BOOTSTRAP_MCP_KEY          # service user key for mcp-agent
 ```
 
-Removed: `CHECKBOT_RAG_API_KEY`, `CHECKBOT_RAG_MCP_API_KEY`.
+Removed: `CHECKBOT_RAG_API_KEY`, `CHECKBOT_RAG_MCP_API_KEY` (replaced by bootstrap service users above).
 
 ## Key format
 
@@ -90,10 +90,10 @@ Runner: `bun:test`. Run: `bun test` at repo root or inside a package.
 
 Test layers:
 1. Pure unit (no DB): `core/src/auth/__tests__/`, `core/src/utils/__tests__/`
-2. DB-backed service tests: `core/src/services/__tests__/` (requires `checkbot_rag_test` DB on port 55432)
+2. DB-backed service tests: `core/src/services/__tests__/` (requires `search_test` DB on port 55432)
 3. Frontend middleware/route tests: `frontend/server/__tests__/`
 
-Test DB setup: `docker compose up -d checkbot-rag-test-db && docker compose run --rm checkbot-rag-dbmate-test`.
+Test DB setup: `docker compose -f docker-compose.test.yml up -d search-test-db && docker compose -f docker-compose.test.yml run --rm search-test-dbmate`.
 
 ## Hybrid retrieval
 

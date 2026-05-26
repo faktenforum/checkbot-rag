@@ -14,9 +14,9 @@ jobs:
       postgres:
         image: pgvector/pgvector:pg17
         env:
-          POSTGRES_DB: checkbot_rag_test
-          POSTGRES_USER: checkbot_rag_test
-          POSTGRES_PASSWORD: checkbot_rag_test
+          POSTGRES_DB: search_test
+          POSTGRES_USER: search_test
+          POSTGRES_PASSWORD: search_test
         ports:
           - 55432:5432
         options: >-
@@ -27,8 +27,8 @@ jobs:
 
     env:
       # Required by the app config parser (not used by tests themselves)
-      CHECKBOT_RAG_EMBEDDING_API_KEY: test_key
-      CHECKBOT_RAG_SESSION_SECRET: test-session-secret-at-least-32-chars-long!
+      SEARCH_EMBEDDING_API_KEY: test_key
+      SEARCH_SESSION_SECRET: test-session-secret-at-least-32-chars-long!
 
     steps:
       - name: Checkout
@@ -47,8 +47,8 @@ jobs:
           docker run --rm \
             --network host \
             -v "${{ github.workspace }}/core/db:/db" \
-            -e DATABASE_URL="postgres://checkbot_rag_test:checkbot_rag_test@localhost:55432/checkbot_rag_test?sslmode=disable" \
-            -e DBMATE_MIGRATIONS_TABLE=checkbot_schema_migrations \
+            -e DATABASE_URL="postgres://search_test:search_test@localhost:55432/search_test?sslmode=disable" \
+            -e DBMATE_MIGRATIONS_TABLE=search_schema_migrations \
             ghcr.io/amacneil/dbmate:latest up
 
       - name: Run tests

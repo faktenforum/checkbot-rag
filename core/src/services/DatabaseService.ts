@@ -6,7 +6,7 @@ export class DatabaseService {
   private vectorColumnEnsured = false;
 
   constructor() {
-    const isTestMode = process.env.CHECKBOT_RAG_TEST_MODE === "1";
+    const isTestMode = process.env.SEARCH_TEST_MODE === "1";
     this.pool = new Pool({
       host: config.db.host,
       port: config.db.port,

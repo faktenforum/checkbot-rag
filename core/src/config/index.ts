@@ -6,8 +6,8 @@ const configSchema = z.object({
   db: z.object({
     host: z.string().default("localhost"),
     port: z.coerce.number().default(5432),
-    name: z.string().default("checkbot_rag"),
-    user: z.string().default("checkbot_rag"),
+    name: z.string().default("search"),
+    user: z.string().default("search"),
     password: z.string(),
   }),
 
@@ -80,65 +80,65 @@ const configSchema = z.object({
 
 function loadConfig() {
   const raw = {
-    port: process.env.CHECKBOT_RAG_PORT,
+    port: process.env.SEARCH_PORT,
 
     db: {
-      host: process.env.CHECKBOT_RAG_POSTGRES_HOST,
-      port: process.env.CHECKBOT_RAG_POSTGRES_PORT,
-      name: process.env.CHECKBOT_RAG_POSTGRES_DB,
-      user: process.env.CHECKBOT_RAG_POSTGRES_USER,
-      password: process.env.CHECKBOT_RAG_POSTGRES_PASSWORD ?? "",
+      host: process.env.SEARCH_POSTGRES_HOST,
+      port: process.env.SEARCH_POSTGRES_PORT,
+      name: process.env.SEARCH_POSTGRES_DB,
+      user: process.env.SEARCH_POSTGRES_USER,
+      password: process.env.SEARCH_POSTGRES_PASSWORD ?? "",
     },
 
     embedding: {
-      provider: process.env.CHECKBOT_RAG_EMBEDDING_PROVIDER,
-      model: process.env.CHECKBOT_RAG_EMBEDDING_MODEL,
-      apiKey: process.env.CHECKBOT_RAG_EMBEDDING_API_KEY ?? "",
-      baseUrl: process.env.CHECKBOT_RAG_EMBEDDING_BASE_URL,
-      dimensions: process.env.CHECKBOT_RAG_EMBEDDING_DIMENSIONS,
-      batchSize: process.env.CHECKBOT_RAG_EMBEDDING_BATCH_SIZE,
+      provider: process.env.SEARCH_EMBEDDING_PROVIDER,
+      model: process.env.SEARCH_EMBEDDING_MODEL,
+      apiKey: process.env.SEARCH_EMBEDDING_API_KEY ?? "",
+      baseUrl: process.env.SEARCH_EMBEDDING_BASE_URL,
+      dimensions: process.env.SEARCH_EMBEDDING_DIMENSIONS,
+      batchSize: process.env.SEARCH_EMBEDDING_BATCH_SIZE,
     },
 
     search: {
-      weightVec: process.env.CHECKBOT_RAG_SEARCH_WEIGHT_VEC,
-      weightFts: process.env.CHECKBOT_RAG_SEARCH_WEIGHT_FTS,
-      rrfK: process.env.CHECKBOT_RAG_RRF_K,
-      overfetchFactor: process.env.CHECKBOT_RAG_SEARCH_OVERFETCH,
+      weightVec: process.env.SEARCH_WEIGHT_VEC,
+      weightFts: process.env.SEARCH_WEIGHT_FTS,
+      rrfK: process.env.SEARCH_RRF_K,
+      overfetchFactor: process.env.SEARCH_OVERFETCH,
     },
 
     chunking: {
-      maxChunkChars: process.env.CHECKBOT_RAG_MAX_CHUNK_CHARS,
+      maxChunkChars: process.env.SEARCH_MAX_CHUNK_CHARS,
     },
 
-    staticDir: process.env.CHECKBOT_RAG_STATIC_DIR,
+    staticDir: process.env.SEARCH_STATIC_DIR,
 
     auth: {
-      sessionSecret: process.env.CHECKBOT_RAG_SESSION_SECRET?.trim() || undefined,
-      sessionLifetimeDays: process.env.CHECKBOT_RAG_SESSION_LIFETIME_DAYS,
-      sessionMaxLifetimeDays: process.env.CHECKBOT_RAG_SESSION_MAX_LIFETIME_DAYS,
+      sessionSecret: process.env.SEARCH_SESSION_SECRET?.trim() || undefined,
+      sessionLifetimeDays: process.env.SEARCH_SESSION_LIFETIME_DAYS,
+      sessionMaxLifetimeDays: process.env.SEARCH_SESSION_MAX_LIFETIME_DAYS,
       bootstrap: {
-        adminEmail: process.env.CHECKBOT_RAG_BOOTSTRAP_ADMIN_EMAIL?.trim() || undefined,
-        adminPassword: process.env.CHECKBOT_RAG_BOOTSTRAP_ADMIN_PASSWORD || undefined,
-        mcpKey: process.env.CHECKBOT_RAG_BOOTSTRAP_MCP_KEY?.trim() || undefined,
-        faktenforumKey: process.env.CHECKBOT_RAG_BOOTSTRAP_FAKTENFORUM_KEY?.trim() || undefined,
+        adminEmail: process.env.SEARCH_BOOTSTRAP_ADMIN_EMAIL?.trim() || undefined,
+        adminPassword: process.env.SEARCH_BOOTSTRAP_ADMIN_PASSWORD || undefined,
+        mcpKey: process.env.SEARCH_BOOTSTRAP_MCP_KEY?.trim() || undefined,
+        faktenforumKey: process.env.SEARCH_BOOTSTRAP_FAKTENFORUM_KEY?.trim() || undefined,
       },
     },
 
     rateLimiting: {
-      enabled: process.env.CHECKBOT_RAG_RATE_LIMIT_ENABLED,
-      defaultPoints: process.env.CHECKBOT_RAG_RATE_LIMIT_DEFAULT_POINTS,
-      defaultDurationSec: process.env.CHECKBOT_RAG_RATE_LIMIT_DEFAULT_DURATION_SEC,
-      searchPoints: process.env.CHECKBOT_RAG_RATE_LIMIT_SEARCH_POINTS,
-      importPoints: process.env.CHECKBOT_RAG_RATE_LIMIT_IMPORT_POINTS,
-      loginIpPoints: process.env.CHECKBOT_RAG_RATE_LIMIT_LOGIN_IP_POINTS,
-      loginIpDurationSec: process.env.CHECKBOT_RAG_RATE_LIMIT_LOGIN_IP_DURATION_SEC,
-      loginEmailPoints: process.env.CHECKBOT_RAG_RATE_LIMIT_LOGIN_EMAIL_POINTS,
-      loginEmailDurationSec: process.env.CHECKBOT_RAG_RATE_LIMIT_LOGIN_EMAIL_DURATION_SEC,
+      enabled: process.env.SEARCH_RATE_LIMIT_ENABLED,
+      defaultPoints: process.env.SEARCH_RATE_LIMIT_DEFAULT_POINTS,
+      defaultDurationSec: process.env.SEARCH_RATE_LIMIT_DEFAULT_DURATION_SEC,
+      searchPoints: process.env.SEARCH_RATE_LIMIT_POINTS,
+      importPoints: process.env.SEARCH_RATE_LIMIT_IMPORT_POINTS,
+      loginIpPoints: process.env.SEARCH_RATE_LIMIT_LOGIN_IP_POINTS,
+      loginIpDurationSec: process.env.SEARCH_RATE_LIMIT_LOGIN_IP_DURATION_SEC,
+      loginEmailPoints: process.env.SEARCH_RATE_LIMIT_LOGIN_EMAIL_POINTS,
+      loginEmailDurationSec: process.env.SEARCH_RATE_LIMIT_LOGIN_EMAIL_DURATION_SEC,
     },
 
     faktenforum: {
-      url: process.env.CHECKBOT_RAG_FAKTENFORUM_URL?.trim() || undefined,
-      apiKey: process.env.CHECKBOT_RAG_FAKTENFORUM_API_KEY?.trim() || undefined,
+      url: process.env.SEARCH_FAKTENFORUM_URL?.trim() || undefined,
+      apiKey: process.env.SEARCH_FAKTENFORUM_API_KEY?.trim() || undefined,
     },
   };
 
@@ -149,12 +149,12 @@ function loadConfig() {
   }
 
   // Production guard: reject the known-weak default session secret. If
-  // CHECKBOT_RAG_SESSION_SECRET is missing in prod the default would silently
+  // SEARCH_SESSION_SECRET is missing in prod the default would silently
   // be used and anyone could forge sessions — hard fail instead.
   const DEV_DEFAULT_SECRET = "dev-insecure-session-secret-change-me-please!!";
   if (process.env.NODE_ENV === "production" && result.data.auth.sessionSecret === DEV_DEFAULT_SECRET) {
     console.error(
-      "FATAL: CHECKBOT_RAG_SESSION_SECRET must be set in production. Refusing to start with the development default."
+      "FATAL: SEARCH_SESSION_SECRET must be set in production. Refusing to start with the development default."
     );
     process.exit(1);
   }

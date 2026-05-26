@@ -1,6 +1,6 @@
 {
     "mcpServers": {
-      "checkbot-rag": {
+      "search": {
         "url": "http://localhost:3020/mcp"
       }
     }

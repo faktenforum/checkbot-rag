@@ -1,7 +1,7 @@
-import { authService } from "@checkbot/core";
+import { authService } from "@search/core";
 import { defineEventHandler, getCookie } from "h3";
 
-const SESSION_COOKIE = "checkbot_session";
+const SESSION_COOKIE = "search_session";
 
 export default defineEventHandler(async (event) => {
   const token = getCookie(event, SESSION_COOKIE);

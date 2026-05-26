@@ -1,4 +1,4 @@
-import { userService } from "@checkbot/core";
+import { userService } from "@search/core";
 
 export default defineEventHandler(async (event) => {
   assertPermission(event, "users:write");

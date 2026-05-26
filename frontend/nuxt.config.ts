@@ -2,8 +2,8 @@ import tailwindcss from "@tailwindcss/vite";
 
 // CORS origin. In dev we fall back to "*"; in production the server-startup
 // plugin (server/plugins/00.config-guard.ts) refuses to boot without
-// CHECKBOT_RAG_PUBLIC_URL set, so reaching runtime with "*" here is impossible.
-const corsOrigin = process.env.CHECKBOT_RAG_PUBLIC_URL?.trim() || "*";
+// SEARCH_PUBLIC_URL set, so reaching runtime with "*" here is impossible.
+const corsOrigin = process.env.SEARCH_PUBLIC_URL?.trim() || "*";
 
 export default defineNuxtConfig({
   devtools: { enabled: true },
@@ -129,7 +129,7 @@ export default defineNuxtConfig({
     dirs: ["composables/**"],
   },
   devServer: {
-    port: process.env.CHECKBOT_RAG_PORT ? Number(process.env.CHECKBOT_RAG_PORT) : 3020,
+    port: process.env.SEARCH_PORT ? Number(process.env.SEARCH_PORT) : 3020,
   },
   nitro: {
     routeRules: {

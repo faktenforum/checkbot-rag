@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { PERMISSIONS } from "@checkbot/core";
+import { PERMISSIONS } from "@search/core";
 
 const PermissionsSchema = z.array(z.enum(PERMISSIONS));
 

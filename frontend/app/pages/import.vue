@@ -45,9 +45,9 @@
           {{ t('import.pathIntro') }}
           <code class="text-xs bg-neutral-100 dark:bg-neutral-800 px-1 rounded">/data/exports/&lt;Dateiname&gt;.json</code>.
           {{ t('import.pathVolume') }}
-          <code class="text-xs bg-neutral-100 dark:bg-neutral-800 px-1 rounded">dev/checkbot-rag/exports/</code>
+          <code class="text-xs bg-neutral-100 dark:bg-neutral-800 px-1 rounded">dev/search/exports/</code>
           {{ t('import.pathVolumeSuffix') }}
-          <code class="text-xs bg-neutral-100 dark:bg-neutral-800 px-1 rounded">./dev/checkbot-rag/exports:/data/exports:ro</code>).
+          <code class="text-xs bg-neutral-100 dark:bg-neutral-800 px-1 rounded">./dev/search/exports:/data/exports:ro</code>).
         </p>
       </template>
 

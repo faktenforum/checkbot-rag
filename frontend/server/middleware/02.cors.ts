@@ -4,7 +4,7 @@ const CORS_ORIGINS = [
   "",
   "http://localhost:3020",
   "http://127.0.0.1:3020",
-  "http://checkbot-rag.localhost",
+  "http://search.localhost",
   "http://localhost:3000",
   "http://127.0.0.1:3000",
 ];

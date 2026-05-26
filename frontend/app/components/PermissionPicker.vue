@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { Permission } from "@checkbot/core";
+import type { Permission } from "@search/core";
 
 const props = defineProps<{
   modelValue: string[];

@@ -1,6 +1,6 @@
 {
-  "name": "Checkbot RAG",
-  "short_name": "RAG",
+  "name": "Search",
+  "short_name": "Search",
   "icons": [
     {
       "src": "/favicon/web-app-manifest-192x192.png",

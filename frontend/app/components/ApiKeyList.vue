@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnDef } from "@tanstack/vue-table";
-import type { ApiKey } from "@checkbot/core";
+import type { ApiKey } from "@search/core";
 
 const props = defineProps<{ userId?: string }>();
 const { t } = useI18n();

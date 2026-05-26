@@ -1,4 +1,4 @@
-import { importService } from "@checkbot/core";
+import { importService } from "@search/core";
 import { JobIdParamSchema } from "../../../../../schemas/import";
 
 export default defineEventHandler(async (event) => {

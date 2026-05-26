@@ -4,7 +4,7 @@ import {
   AUTO_LANGUAGE_ERROR_MESSAGE,
   SEARCH_LANGUAGE_CODES,
   searchService,
-} from "@checkbot/core";
+} from "@search/core";
 import type { McpResult } from "../types.js";
 import { text } from "../types.js";
 

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ApiKey } from "@checkbot/core";
+import type { ApiKey } from "@search/core";
 
 
 const route = useRoute();

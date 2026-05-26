@@ -1,4 +1,4 @@
-import { apiKeyService, hasPermission } from "@checkbot/core";
+import { apiKeyService, hasPermission } from "@search/core";
 import { ApiKeyListQuerySchema } from "../../../schemas/apiKeys";
 
 export default defineEventHandler(async (event) => {

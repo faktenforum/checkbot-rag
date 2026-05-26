@@ -3,7 +3,7 @@ import { describe, it, expect, mock, beforeEach, afterEach } from "bun:test";
 // Mock importService before importing the handler
 const mockStart = mock(() => Promise.resolve("job-abc"));
 
-mock.module("@checkbot/core", () => ({
+mock.module("@search/core", () => ({
   importService: { start: mockStart },
   IMPORT_LANGUAGE_CODES: ["de", "en", "fr", "es", "it", "pt", "nl"] as const,
   PERMISSIONS: [

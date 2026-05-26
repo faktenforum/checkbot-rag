@@ -1,5 +1,5 @@
 // API response types — must match backend DTOs
-import type { ClaimStatus, SearchLanguage as CoreSearchLanguage } from "@checkbot/core";
+import type { ClaimStatus, SearchLanguage as CoreSearchLanguage } from "@search/core";
 
 export type { ClaimStatus };
 

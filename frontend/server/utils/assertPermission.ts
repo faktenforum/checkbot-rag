@@ -1,4 +1,4 @@
-import { auditLogService, hasPermission } from "@checkbot/core";
+import { auditLogService, hasPermission } from "@search/core";
 import { createError, getRequestIP } from "h3";
 import type { H3Event } from "h3";
 
