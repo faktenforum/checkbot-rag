@@ -79,22 +79,9 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      link: [
-        {
-          rel: "icon",
-          type: "image/png",
-          href: "/favicon/web-app-manifest-192x192.png",
-        },
-        {
-          rel: "apple-touch-icon",
-          sizes: "180x180",
-          href: "/favicon/apple-touch-icon.png",
-        },
-        {
-          rel: "manifest",
-          href: "/favicon/site.webmanifest",
-        },
-      ],
+      // Favicon + manifest links are injected at runtime in `app/app.vue` so
+      // they pick up the current `app.baseURL` (defaults to `/`, but can be
+      // `/search/` when the admin UI is served under a path prefix).
       meta: [
         {
           name: "theme-color",
