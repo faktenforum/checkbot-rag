@@ -80,7 +80,9 @@
   "sync": {
     "cardTitle": "Faktenforum Synchronisierung",
     "description": "Alle Claims von der verbundenen Faktenforum-Instanz abrufen und in den RAG-Index übernehmen. Der Lauf ist idempotent – bereits indexierte Claims werden übersprungen.",
-    "startButton": "Jetzt synchronisieren"
+    "startButton": "Jetzt synchronisieren",
+    "forceLabel": "Vollständiger Reindex",
+    "forceHint": "Bettet alle Claims neu ein statt nur die geänderten. Nötig nach Änderung des Embedding-Modells oder des Chunkings. Eine geänderte Vektor-Dimension erfordert zusätzlich eine Schema-Migration."
   },
   "import": {
     "title": "Import",

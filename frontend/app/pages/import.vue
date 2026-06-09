@@ -17,8 +17,11 @@
         </p>
       </template>
 
-      <div class="flex items-center gap-4">
-        <div class="flex-1" />
+      <div class="flex items-start gap-4">
+        <div class="flex-1 space-y-1">
+          <UCheckbox v-model="forceResync" :label="t('sync.forceLabel')" />
+          <p class="text-xs text-neutral-500">{{ t('sync.forceHint') }}</p>
+        </div>
         <UButton
           :loading="syncing"
           icon="i-heroicons-arrow-path"
@@ -200,6 +203,7 @@ const importing = ref(false);
 const importError = ref<string | null>(null);
 const syncing = ref(false);
 const syncError = ref<string | null>(null);
+const forceResync = ref(false);
 const actionLoadingId = ref<string | null>(null);
 const currentAction = ref<"cancel" | "delete" | null>(null);
 
@@ -242,7 +246,7 @@ async function startSync() {
   try {
     await apiFetch("/api/v1/sync", {
       method: "POST",
-      body: JSON.stringify({}),
+      body: JSON.stringify({ force: forceResync.value }),
     });
     await refetch();
   } catch (err) {

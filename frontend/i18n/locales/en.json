@@ -80,7 +80,9 @@
   "sync": {
     "cardTitle": "Faktenforum sync",
     "description": "Pull all claims from the connected Faktenforum instance into the RAG index. The run is idempotent — already-indexed claims are skipped.",
-    "startButton": "Sync now"
+    "startButton": "Sync now",
+    "forceLabel": "Full re-index",
+    "forceHint": "Re-embeds every claim instead of only changed ones. Needed after the embedding model or chunking changes. A changed vector dimension also requires a schema migration."
   },
   "import": {
     "title": "Import",
