@@ -26,5 +26,7 @@ export const ImportFromJsonSchema = z.object({
   claims: z.array(ClaimJsonSchema).min(1),
   language: z.enum(IMPORT_LANGUAGE_CODES).default("de"),
   source: z.string().optional(),
+  // Re-index every claim, bypassing the unchanged-hash skip.
+  force: z.boolean().default(false),
 });
 

@@ -18,8 +18,17 @@ export class ImportService {
   /**
    * Start an import job from a pre-parsed JSON array of claims.
    * Runs in the background; use {@link get} to poll job status.
+   *
+   * When `force` is true, the per-claim change detection is skipped and every
+   * claim is re-chunked and re-embedded. Use it after the embedding model or
+   * chunking changes. A changed vector dimension still needs a schema migration.
    */
-  async start(claims: ClaimJson[], source: string, language: string): Promise<string> {
+  async start(
+    claims: ClaimJson[],
+    source: string,
+    language: string,
+    force = false
+  ): Promise<string> {
     const { rows } = await db.query<{ id: string }>(
       `INSERT INTO public.import_jobs (status, source, total, language)
        VALUES ('pending', $1, $2, $3)
@@ -44,7 +53,7 @@ export class ImportService {
     this.jobs.set(jobId, job);
 
     // Run asynchronously — do not await
-    this.runImport(jobId, job, claims, language).catch((err) => {
+    this.runImport(jobId, job, claims, language, force).catch((err) => {
       console.error(`[ImportService] Job ${jobId} crashed:`, err);
     });
 
@@ -139,7 +148,8 @@ export class ImportService {
     jobId: string,
     job: ImportJobStatus,
     claims: ClaimJson[],
-    language: string
+    language: string,
+    force = false
   ): Promise<void> {
     // If the job was canceled before it started, mark as canceled and stop.
     if (job.status === "canceled") {
@@ -182,7 +192,7 @@ export class ImportService {
         }
 
         try {
-          const skipped = await this.importClaim(claim, language);
+          const skipped = await this.importClaim(claim, language, force);
           if (skipped) {
             job.skipped++;
           } else {
@@ -229,7 +239,13 @@ export class ImportService {
   }
 
   // Import a single claim. Returns true if skipped (no changes).
-  private async importClaim(claim: ClaimJson, importLanguage: string): Promise<boolean> {
+  // When force is true, the unchanged-hash skip is bypassed and the claim is
+  // always re-chunked and re-embedded.
+  private async importClaim(
+    claim: ClaimJson,
+    importLanguage: string,
+    force = false
+  ): Promise<boolean> {
     // Skip claims without a synopsis - there is nothing meaningful to index
     if (!claim.synopsis) {
       return true;
@@ -244,7 +260,7 @@ export class ImportService {
     );
 
     const existingRow = existing.rows[0];
-    if (existingRow?.version_hash === versionHash) {
+    if (!force && existingRow?.version_hash === versionHash) {
       return true; // unchanged
     }
 

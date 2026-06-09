@@ -1,10 +1,11 @@
-import { importService, config } from "@checkbot/core";
+import { config, importService, IMPORT_LANGUAGE_CODES } from "@checkbot/core";
 import type { ClaimJson } from "@checkbot/core";
-import { IMPORT_LANGUAGE_CODES } from "@checkbot/core";
 import { z } from "zod";
 
 const SyncSchema = z.object({
   language: z.enum(IMPORT_LANGUAGE_CODES).default("de"),
+  // Re-index every claim, bypassing the unchanged-hash skip.
+  force: z.boolean().default(false),
 });
 
 export default defineEventHandler(async (event) => {
@@ -19,6 +20,7 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event).catch(() => ({}));
   const parsed = SyncSchema.safeParse(body ?? {});
   const language = parsed.success ? parsed.data.language : "de";
+  const force = parsed.success ? parsed.data.force : false;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -52,7 +54,7 @@ export default defineEventHandler(async (event) => {
     return { error: "Faktenforum export returned no claims or invalid format" };
   }
 
-  const jobId = await importService.start(claims, "faktenforum-sync", language);
+  const jobId = await importService.start(claims, "faktenforum-sync", language, force);
 
   setResponseStatus(event, 202);
   return {

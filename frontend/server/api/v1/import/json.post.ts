@@ -10,12 +10,13 @@ export default defineEventHandler(async (event) => {
     setResponseStatus(event, 400);
     return { error: "Validation error", details: result.error.flatten() };
   }
-  const { claims, language, source } = result.data;
+  const { claims, language, source, force } = result.data;
 
   const jobId = await importService.start(
     claims as unknown as ClaimJson[],
     source ?? "api-json",
-    language
+    language,
+    force
   );
 
   setResponseStatus(event, 202);
