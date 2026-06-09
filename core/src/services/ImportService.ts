@@ -229,12 +229,11 @@ export class ImportService {
   }
 
   // Import a single claim. Returns true if skipped (no changes).
+  // All claims are indexed regardless of status or synopsis: the search backend
+  // is the universal search for Faktenforum (editorial queue included), not only
+  // the published fact-check corpus. Status is stored and filtered at query time,
+  // so submission/rejected/spam claims stay separable from published fact-checks.
   private async importClaim(claim: ClaimJson, importLanguage: string): Promise<boolean> {
-    // Skip claims without a synopsis - there is nothing meaningful to index
-    if (!claim.synopsis) {
-      return true;
-    }
-
     const versionHash = this.hashClaim(claim);
 
     // Check if already imported and unchanged

@@ -28,7 +28,9 @@ export const registerSearchFactchecksTool = (server: McpServer): void => {
             "Optional search language for the query (e.g. 'de', 'en', 'fr'). If omitted, defaults to 'auto'."
           ),
         status: z.string().optional().describe(
-          "Filter by claim status (e.g. 'checked', 'published'). Omit to include all statuses."
+          "Filter by claim status. Omit to default to published fact-checks ('checked'). " +
+            "The index also holds un-checked submissions (rejected/spam/etc.); pass an explicit " +
+            "status to reach those - the fact-check tool keeps them out of results by default."
         ),
         internal: z.boolean().optional().describe(
           "Filter by internal flag. Omit = both; true = internal only; false = external only."
@@ -61,7 +63,9 @@ export const registerSearchFactchecksTool = (server: McpServer): void => {
           ratingLabel: rating_label,
           chunkType: "all",
           language: language ?? "auto",
-          status: status as Parameters<typeof searchService.search>[0]["status"],
+          // Default to published fact-checks so the agent's corpus stays clean
+          // now that the index holds every claim (submissions included).
+          status: (status ?? "checked") as Parameters<typeof searchService.search>[0]["status"],
           internal,
           enableFts: enable_fts ?? true,
           enableVec: enable_vec ?? true,

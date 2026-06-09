@@ -9,7 +9,7 @@ export class ChunkingService {
     this.maxChunkChars = config.chunking.maxChunkChars;
   }
 
-  // Produces structured chunks for a single fact-check claim.
+  // Produces structured chunks for a single claim (submission or fact-check).
   // Strategy:
   //   1. claim_overview — synthesizes the claim statement and verdict fields
   //   2. fact_detail (one per fact) — the full fact text + source excerpts
@@ -42,13 +42,20 @@ export class ChunkingService {
     };
   }
 
-  // claim_overview chunk: synopsis + rating verdict + categories
-  // Provides a concise, searchable summary of the entire fact-check.
+  // claim_overview chunk: synopsis (or submitter notes) + rating verdict +
+  // categories + origins. A concise, searchable summary of the whole claim -
+  // works for un-checked submissions too, not only published fact-checks.
   private buildOverviewChunk(claim: ClaimJson, meta: ChunkMetadata): Chunk {
     const parts: string[] = [];
 
     if (claim.synopsis) {
       parts.push(`Behauptung: ${claim.synopsis}`);
+    }
+
+    // Submitter's description - the primary searchable text for claims that
+    // have no synopsis yet (submissions, rejected, spam).
+    if (claim.submitterNotes) {
+      parts.push(`Einreichung: ${claim.submitterNotes}`);
     }
 
     if (claim.ratingSummary) {
@@ -68,6 +75,14 @@ export class ChunkingService {
       .join(", ");
     if (categoryLabels) {
       parts.push(`Kategorien: ${categoryLabels}`);
+    }
+
+    const originUrls = (claim.origins ?? [])
+      .map((o) => o.url)
+      .filter((u): u is string => Boolean(u))
+      .join(", ");
+    if (originUrls) {
+      parts.push(`Quellen: ${originUrls}`);
     }
 
     if (claim.shortId) {
